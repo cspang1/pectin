@@ -1,7 +1,10 @@
 from PyQt5.QtWidgets import (
+    QWidget,
     QMainWindow,
     QSplitter,
-    QFrame
+    QPushButton,
+    QHBoxLayout,
+    QTextEdit
 )
 from PyQt5.QtCore import (
     Qt
@@ -17,10 +20,16 @@ class pectin(QMainWindow):
     def setupWindow(self):
         self.setWindowTitle("Pectin")
         main_split = QSplitter(Qt.Vertical)
-        top = QFrame()
-        top.setFrameShape(QFrame.StyledPanel)
-        bottom = QFrame()
-        bottom.setFrameShape(QFrame.StyledPanel)
-        main_split.addWidget(top)
-        main_split.addWidget(bottom)
+
+        intfc_area = QWidget()
+        log_area = QTextEdit()
+        test_btn_1 = QPushButton("ABC")
+        test_btn_2 = QPushButton("DEF")
+        btn_layout = QHBoxLayout()
+        btn_layout.addWidget(test_btn_1)
+        btn_layout.addWidget(test_btn_2)
+        intfc_area.setLayout(btn_layout)
+        main_split.addWidget(intfc_area)
+        main_split.addWidget(log_area)
+
         self.setCentralWidget(main_split)
