@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (
     QWidget,
     QPushButton,
     QHBoxLayout,
+    QVBoxLayout,
     QTimeEdit,
     QSpinBox,
     QLabel,
@@ -9,35 +10,50 @@ from PyQt5.QtWidgets import (
     QFrame,
     QAbstractSpinBox,
     QLCDNumber,
-    QMessageBox
+    QMessageBox,
+    QDateEdit
 )
 from PyQt5.QtCore import (
     pyqtSlot,
     pyqtSignal,
     QDateTime,
     QTimer,
+    QDate,
+    QTime,
     Qt
 )
 
 
 class zulu(QWidget):
 
+    class milSpinBox(QSpinBox):
+        def __init__(self, *args):
+            QSpinBox.__init__(self, *args)
+
+        def textFromValue(self, value):
+            return "%02d" % value
+
     class timer(QLCDNumber):
 
         def __init__(self, parent):
-            super().__init__(parent)
+            super().__init__(8, parent)
+            self.showTime()
+
+        def showTime(self):
+            time = QTime.currentTime().toString("HH:mm:ss")
+            self.display(time)
 
     class inputs(QWidget):
 
         def __init__(self, parent):
             super().__init__(parent)
-            self.hr_in = QSpinBox()
+            self.hr_in = zulu.milSpinBox()
             self.hr_in.setButtonSymbols(QAbstractSpinBox.NoButtons)
             self.hr_in.setRange(0, 23)
-            self.min_in = QSpinBox()
+            self.min_in = zulu.milSpinBox()
             self.min_in.setButtonSymbols(QAbstractSpinBox.NoButtons)
             self.min_in.setRange(0, 59)
-            self.sec_in = QSpinBox()
+            self.sec_in = zulu.milSpinBox()
             self.sec_in.setButtonSymbols(QAbstractSpinBox.NoButtons)
             self.sec_in.setRange(0, 59)
             hr_lbl = QLabel("HH")
@@ -52,6 +68,7 @@ class zulu(QWidget):
             timer_layout.addWidget(self.sec_in)
             timer_layout.addWidget(sec_lbl)
             timer_layout.addWidget(zulu_lbl)
+            timer_layout.setContentsMargins(0, 0, 0, 0)
             self.setLayout(timer_layout)
 
     def __init__(self, parent):
@@ -59,8 +76,10 @@ class zulu(QWidget):
         self.zulu_layout = QHBoxLayout()
         self.zulu_inputs = self.inputs(self)
         self.zulu_timer = self.timer(self)
+        self.zulu_timer.setFixedSize(150, 50)
         self.zulu_layout.addWidget(self.zulu_inputs)
         self.zulu_layout.addWidget(self.zulu_timer)
+        self.zulu_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.zulu_layout)
         self.zulu_timer.setVisible(False)
 
@@ -80,22 +99,31 @@ class hack(QFrame):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setFrameShape(QFrame.StyledPanel)
-        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-        self.main_layout = QHBoxLayout()
+        self.main_layout = QVBoxLayout()
+        self.hack_layout = QHBoxLayout()
+        self.date_layout = QHBoxLayout()
         self.hack_time_in = QTimeEdit()
         self.hack_time_in.setDisplayFormat("HH:mm:ss")
         self.time_set = zulu(self)
         self.hacked.connect(self.time_set.showTimer)
-        self.main_layout.addWidget(self.time_set)
-        # self.main_layout.addWidget(self.hack_time_in)
+        self.date = QDateEdit(QDate.currentDate())
+        self.date.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.date.setCalendarPopup(True)
+        self.date_layout.addWidget(QLabel("Mission Date:"))
+        self.date_layout.setAlignment(Qt.AlignHCenter)
+        self.date_layout.addWidget(self.date)
+        self.main_layout.addLayout(self.date_layout)
+        self.main_layout.addLayout(self.hack_layout)
         self.setLayout(self.main_layout)
         self.hack_button = QPushButton("Hack!")
         self.reset_button = QPushButton("Reset")
         self.reset_button.setEnabled(False)
         self.hack_button.setStyleSheet("background-color: red; color: white;")
-        self.main_layout.addWidget(self.hack_button)
-        self.main_layout.addWidget(self.reset_button)
+        self.hack_layout.addWidget(self.reset_button)
+        self.hack_layout.addWidget(self.hack_button)
+        self.hack_layout.addWidget(self.time_set)
         self.hack_button.clicked.connect(self.hackTime)
         self.reset_button.clicked.connect(self.resetTime)
         self.hack_timer = QTimer()
