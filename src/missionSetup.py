@@ -29,54 +29,104 @@ from PyQt5.QtCore import (
 )
 
 
+class baseFrame(QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFrameStyle(QFrame.Panel)
+        self.layout = QHBoxLayout()
+        self.layout.setAlignment(Qt.AlignHCenter)
+
+
+class timeFrame(baseFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        time_label = QLabel("Time:")
+        zulu_label = QLabel("ZULU")
+        zulu_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.time_edit = QTimeEdit()
+        self.time_edit.setDisplayFormat("HH:mm:ss")
+        self.hack_btn = QPushButton("Hack")
+        self.hack_btn.setAutoDefault(False)
+        self.sys_time_btn = QPushButton("Use System Time")
+        self.sys_time_btn.setAutoDefault(False)
+        self.layout.addWidget(time_label)
+        self.layout.addWidget(self.time_edit)
+        self.layout.addWidget(zulu_label)
+        self.layout.addWidget(self.hack_btn)
+        self.layout.addWidget(self.sys_time_btn)
+        self.setLayout(self.layout)
+
+
+class dateFrame(baseFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        date_label = QLabel("Date:")
+        self.date_edit = QDateEdit(QDate.currentDate())
+        self.date_edit.setCalendarPopup(True)
+        self.layout.addWidget(date_label)
+        self.layout.addWidget(self.date_edit)
+        self.setLayout(self.layout)
+
+
+class dlFrame(baseFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        dl_label = QLabel("DL-")
+        self.dl_edit = QSpinBox()
+        self.layout.addWidget(dl_label)
+        self.layout.addWidget(self.dl_edit)
+        self.setLayout(self.layout)
+
+
+class sysFrame(baseFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        sys_label = QLabel("System:")
+        self.sys_select = QComboBox()
+        self.layout.addWidget(sys_label)
+        self.layout.addWidget(self.sys_select)
+        self.setLayout(self.layout)
+
+
+class cfgFrame(baseFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        cfg_label = QLabel("Config:")
+        self.path_edit = QLineEdit()
+        self.browse_btn = QPushButton("Browse...")
+        self.browse_btn.setAutoDefault(False)
+        self.layout.addWidget(cfg_label)
+        self.layout.addWidget(self.path_edit)
+        self.layout.addWidget(self.browse_btn)
+        self.setLayout(self.layout)
+
+
 class missionSetup(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle("Mission Setup")
         self.setModal(True)
 
-        # Instantiate dialog elements
-        time_label = QLabel("Time:")
-        zulu_label = QLabel("ZULU")
-        date_label = QLabel("Date:")
-        dl_label = QLabel("DL-")
-        sys_label = QLabel("System:")
-        cfg_label = QLabel("Config:")
-        self.time_edit = QTimeEdit()
-        self.hack_btn = QPushButton("Hack")
-        self.sys_time_btn = QPushButton("Use System Time")
-        self.date_edit = QDateEdit()
-        self.dl_edit = QSpinBox()
-        self.sys_select = QComboBox()
-        self.path_edit = QLineEdit()
-        self.browse_btn = QPushButton("Browse...")
-        time_btn_layout = QHBoxLayout()
-        time_btn_layout.addWidget(self.hack_btn)
-        time_btn_layout.addWidget(self.sys_time_btn)
-        cfg_set_layout = QHBoxLayout()
-        cfg_set_layout.addWidget(self.path_edit)
-        cfg_set_layout.addWidget(self.browse_btn)
+        self.time_setup = timeFrame()
+        self.date_setup = dateFrame()
+        self.dl_setup = dlFrame()
+        self.sys_setup = sysFrame()
+        self.cfg_setup = cfgFrame()
 
         # Populate dialog; Row 1
         main_layout = QGridLayout()
-        main_layout.addWidget(time_label, 0, 0)
-        main_layout.addWidget(self.time_edit, 0, 1)
-        main_layout.addWidget(zulu_label, 0, 2)
-        main_layout.addLayout(time_btn_layout, 0, 3)
-        main_layout.addWidget(date_label, 0, 4)
-        main_layout.addWidget(self.date_edit, 0, 5)
+        main_layout.addWidget(self.time_setup, 0, 0, 1, 4)
+        main_layout.addWidget(self.date_setup, 0, 4, 1, 2)
 
         # Row 2
-        main_layout.addWidget(dl_label, 1, 0)
-        main_layout.addWidget(self.dl_edit, 1, 1)
-        main_layout.addWidget(sys_label, 1, 2)
-        main_layout.addWidget(self.sys_select, 1, 3)
-        main_layout.addWidget(cfg_label, 1, 4)
-        main_layout.addLayout(cfg_set_layout, 1, 5)
+        main_layout.addWidget(self.dl_setup, 1, 0, 1, 2)
+        main_layout.addWidget(self.sys_setup, 1, 2, 1, 2)
+        main_layout.addWidget(self.cfg_setup, 1, 4, 1, 2)
 
         # Button box
         self.button_box = QDialogButtonBox()
         self.back_btn = QPushButton("< Back")
+        self.back_btn.setEnabled(False)
         self.next_btn = QPushButton("Next >")
         self.next_btn.setDefault(True)
         self.cancel_btn = QPushButton("Cancel")
@@ -86,3 +136,4 @@ class missionSetup(QDialog):
 
         main_layout.addWidget(self.button_box, 2, 0, -1, -1)
         self.setLayout(main_layout)
+        self.setFixedSize(main_layout.sizeHint())
