@@ -11,13 +11,16 @@ from PyQt5.QtCore import (
     Qt
 )
 from hack import hack
+from missionSetup import missionSetup
 
 
 class pectin(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setupWindow()
+        msn_setup_diag = missionSetup(self)
+        msn_setup_diag.show()
+        # self.setupWindow()
 
     def setupWindow(self):
         self.setWindowTitle("Pectin")
