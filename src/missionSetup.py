@@ -1,31 +1,29 @@
+from pathlib import Path
+import os
+import json
 from PyQt5.QtWidgets import (
     QComboBox,
+    QInputDialog,
     QLineEdit,
-    QWidget,
     QDialog,
     QDialogButtonBox,
     QPushButton,
     QGridLayout,
     QHBoxLayout,
-    QVBoxLayout,
+    QSizePolicy,
     QTimeEdit,
     QSpinBox,
     QLabel,
-    QSizePolicy,
     QFrame,
-    QAbstractSpinBox,
-    QLCDNumber,
     QMessageBox,
     QDateEdit
 )
 from PyQt5.QtCore import (
-    pyqtSlot,
-    pyqtSignal,
-    QDateTime,
-    QTimer,
     QDate,
     QTime,
-    Qt
+    QTimer,
+    Qt,
+    pyqtSlot
 )
 
 
@@ -34,12 +32,14 @@ class baseFrame(QFrame):
         super().__init__(parent)
         self.setFrameStyle(QFrame.Panel)
         self.layout = QHBoxLayout()
-        self.layout.setAlignment(Qt.AlignHCenter)
+        self.layout.setAlignment(Qt.AlignCenter)
 
 
 class timeFrame(baseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        # Setup frame
         time_label = QLabel("Time:")
         zulu_label = QLabel("ZULU")
         zulu_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
@@ -47,6 +47,7 @@ class timeFrame(baseFrame):
         self.time_edit.setDisplayFormat("HH:mm:ss")
         self.hack_btn = QPushButton("Hack")
         self.hack_btn.setAutoDefault(False)
+        self.hack_btn.setStyleSheet("background-color: red; color: white;")
         self.sys_time_btn = QPushButton("Use System Time")
         self.sys_time_btn.setAutoDefault(False)
         self.layout.addWidget(time_label)
@@ -56,6 +57,45 @@ class timeFrame(baseFrame):
         self.layout.addWidget(self.sys_time_btn)
         self.setLayout(self.layout)
 
+        # Setup behavior
+        self.hacked = False
+        self.time = QTime()
+        self.hack_timer = QTimer()
+        self.hack_timer.setTimerType(Qt.VeryCoarseTimer)
+        self.hack_timer.setInterval(1000)
+        self.hack_timer.timeout.connect(self.inc_time)
+        self.hack_btn.clicked.connect(self.hack_time)
+        self.sys_time_btn.clicked.connect(self.set_sys_time)
+
+    @pyqtSlot()
+    def hack_time(self, sys_time=None):
+        if not self.hacked:
+            self.time = self.time_edit.time() if not sys_time else sys_time
+            self.hack_timer.start()
+            self.time_edit.setTime(self.time)
+            self.hack_btn.setStyleSheet(
+                "background-color: green; color: white;"
+            )
+            self.hack_btn.setText("Hacked!")
+            self.time_edit.setEnabled(False)
+            self.sys_time_btn.setEnabled(False)
+        else:
+            self.hack_btn.setStyleSheet("background-color: red; color: white;")
+            self.hack_btn.setText("Hack")
+            self.hack_timer.stop()
+            self.time_edit.setEnabled(True)
+            self.sys_time_btn.setEnabled(True)
+        self.hacked = not self.hacked
+
+    @pyqtSlot()
+    def set_sys_time(self):
+        self.hack_time(QTime().currentTime())
+
+    @pyqtSlot()
+    def inc_time(self):
+        self.time = self.time.addSecs(1)
+        self.time_edit.setTime(self.time)
+
 
 class dateFrame(baseFrame):
     def __init__(self, parent=None):
@@ -63,6 +103,7 @@ class dateFrame(baseFrame):
         date_label = QLabel("Date:")
         self.date_edit = QDateEdit(QDate.currentDate())
         self.date_edit.setCalendarPopup(True)
+        self.date_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.layout.addWidget(date_label)
         self.layout.addWidget(self.date_edit)
         self.setLayout(self.layout)
@@ -73,6 +114,8 @@ class dlFrame(baseFrame):
         super().__init__(parent)
         dl_label = QLabel("DL-")
         self.dl_edit = QSpinBox()
+        self.dl_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.dl_edit.setMaximum(10000)
         self.layout.addWidget(dl_label)
         self.layout.addWidget(self.dl_edit)
         self.setLayout(self.layout)
@@ -86,6 +129,54 @@ class sysFrame(baseFrame):
         self.layout.addWidget(sys_label)
         self.layout.addWidget(self.sys_select)
         self.setLayout(self.layout)
+
+        sys_list_path = Path(__file__).parents[1] / "res" / "systems.json"
+        os.makedirs(os.path.dirname(sys_list_path), exist_ok=True)
+        if not sys_list_path.exists():
+            self.new_sys_file(sys_list_path)
+
+        systems = None
+        with open(sys_list_path, 'r') as sys_list:
+            try:
+                systems = json.load(sys_list)
+            except Exception:
+                print("Error reading systems file")
+                self.new_sys_file(sys_list_path)
+                systems = json.load(sys_list)
+
+        self.cur_index = 0
+        self.sys_select.addItem('...')
+        self.sys_select.addItems(systems['systems'])
+        self.sys_select.addItem('+ Add new')
+
+        self.sys_select.activated.connect(self.sys_selected)
+
+    @pyqtSlot(int)
+    def sys_selected(self, index):
+        if index == self.sys_select.count() - 1:
+            self.sys_select.setCurrentIndex(self.cur_index)
+            named = False
+            selected = None
+            while not named:
+                selected = QInputDialog.getText(self, 'Add New System', 'System:')
+                if not selected[1]:
+                    return
+                elif not str.strip(selected[0]):
+                    QMessageBox(
+                        QMessageBox.Critical,
+                        "Error",
+                        "System name cannot be blank",
+                    ).exec()
+                else:
+                    named = True
+            self.sys_select.insertItem(index, selected[0])
+            self.sys_select.setCurrentIndex(index)
+        self.cur_index = index
+
+    def new_sys_file(self, sys_list_path):
+        default = json.dumps({'systems': ['XXA', 'XXB']})
+        with open(sys_list_path, 'w') as sys_list:
+            sys_list.write(default)
 
 
 class cfgFrame(baseFrame):
