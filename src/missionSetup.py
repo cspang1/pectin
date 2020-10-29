@@ -130,26 +130,34 @@ class sysFrame(baseFrame):
         self.layout.addWidget(self.sys_select)
         self.setLayout(self.layout)
 
-        sys_list_path = Path(__file__).parents[1] / "res" / "systems.json"
-        os.makedirs(os.path.dirname(sys_list_path), exist_ok=True)
-        if not sys_list_path.exists():
-            self.new_sys_file(sys_list_path)
+        self.sys_list_path = Path(__file__).parents[1] / "res" / "systems.json"
+        os.makedirs(os.path.dirname(self.sys_list_path), exist_ok=True)
+        if not self.sys_list_path.exists():
+            self.new_sys_file(self.sys_list_path)
 
-        systems = None
-        with open(sys_list_path, 'r') as sys_list:
+        self.cur_systems = None
+        self.load_systems()
+        self.sys_select.activated.connect(self.sys_selected)
+
+    def load_systems(self):
+        self.sys_select.clear()
+        with open(self.sys_list_path, 'r') as sys_list:
             try:
-                systems = json.load(sys_list)
+                self.cur_systems = json.load(sys_list)
             except Exception:
                 print("Error reading systems file")
-                self.new_sys_file(sys_list_path)
-                systems = json.load(sys_list)
+                self.new_sys_file(self.sys_list_path)
+                self.cur_systems = json.load(sys_list)
 
         self.cur_index = 0
         self.sys_select.addItem('...')
-        self.sys_select.addItems(systems['systems'])
+        self.sys_select.addItems(self.cur_systems['systems'])
         self.sys_select.addItem('+ Add new')
 
-        self.sys_select.activated.connect(self.sys_selected)
+    def add_system(self, system):
+        self.cur_systems['systems'].append(system)
+        with open(self.sys_list_path, 'w') as sys_list:
+            sys_list.write(json.dumps(self.cur_systems))
 
     @pyqtSlot(int)
     def sys_selected(self, index):
@@ -169,7 +177,8 @@ class sysFrame(baseFrame):
                     ).exec()
                 else:
                     named = True
-            self.sys_select.insertItem(index, selected[0])
+            self.add_system(selected[0])
+            self.load_systems()
             self.sys_select.setCurrentIndex(index)
         self.cur_index = index
 
