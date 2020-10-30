@@ -137,33 +137,39 @@ class sysFrame(baseFrame):
 
         self.cur_systems = None
         self.load_systems()
-        self.sys_select.activated.connect(self.sys_selected)
+        # Un-comment to allow user to add systems
+        # self.sys_select.activated.connect(self.sys_selected)
 
-    def load_systems(self):
+    def load_systems(self, active=None):
         self.sys_select.clear()
         with open(self.sys_list_path, 'r') as sys_list:
             try:
                 self.cur_systems = json.load(sys_list)
             except Exception:
-                print("Error reading systems file")
                 self.new_sys_file(self.sys_list_path)
+                # How can we handle this kind of recursive try?
                 self.cur_systems = json.load(sys_list)
 
-        self.cur_index = 0
         self.sys_select.setPlaceholderText('...')
         self.sys_select.addItems(self.cur_systems['systems'])
-        self.sys_select.addItem('+ Add new')
+        # Un-comment to allow user to add systems
+        # self.sys_select.addItem('+ Add new')
+
+        if active:
+            self.sys_select.setCurrentIndex(self.sys_select.findText(active))
 
     def add_system(self, system):
         self.cur_systems['systems'].append(system)
-        self.cur_systems['systems'] = sorted(self.cur_systems['systems'])
+        self.cur_systems['systems'] = sorted(
+            self.cur_systems['systems'],
+            key=str.casefold
+        )
         with open(self.sys_list_path, 'w') as sys_list:
             sys_list.write(json.dumps(self.cur_systems))
 
     @pyqtSlot(int)
     def sys_selected(self, index):
         if index == self.sys_select.count() - 1:
-            self.sys_select.setCurrentIndex(self.cur_index)
             named = False
             selected = None
             while not named:
@@ -192,10 +198,9 @@ class sysFrame(baseFrame):
                     ).exec()
                 else:
                     named = True
-            self.add_system(selected[0])
-            self.load_systems()
-            self.sys_select.setCurrentIndex(index)
-        self.cur_index = index
+            system = selected[0]
+            self.add_system(system)
+            self.load_systems(system)
 
     def new_sys_file(self, sys_list_path):
         default = json.dumps({'systems': ['XXA', 'XXB']})
