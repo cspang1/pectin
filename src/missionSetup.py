@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 import json
 from PyQt5.QtWidgets import (
-    QComboBox,
+    QComboBox, QFileDialog,
     QInputDialog,
     QLineEdit,
     QDialog,
@@ -22,12 +22,14 @@ from PyQt5.QtCore import (
     QDate,
     QTime,
     QTimer,
-    Qt,
+    Qt, pyqtSignal,
     pyqtSlot
 )
 
 
 class baseFrame(QFrame):
+    field_valid = pyqtSignal(bool)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFrameStyle(QFrame.Panel)
@@ -36,6 +38,8 @@ class baseFrame(QFrame):
 
 
 class timeFrame(baseFrame):
+    time_hacked = pyqtSignal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -58,7 +62,6 @@ class timeFrame(baseFrame):
         self.setLayout(self.layout)
 
         # Setup behavior
-        self.hacked = False
         self.time = QTime()
         self.hack_timer = QTimer()
         self.hack_timer.setTimerType(Qt.VeryCoarseTimer)
@@ -69,7 +72,7 @@ class timeFrame(baseFrame):
 
     @pyqtSlot()
     def hack_time(self, sys_time=None):
-        if not self.hacked:
+        if not self.hack_timer.isActive():
             self.time = self.time_edit.time() if not sys_time else sys_time
             self.hack_timer.start()
             self.time_edit.setTime(self.time)
@@ -85,7 +88,7 @@ class timeFrame(baseFrame):
             self.hack_timer.stop()
             self.time_edit.setEnabled(True)
             self.sys_time_btn.setEnabled(True)
-        self.hacked = not self.hacked
+        self.time_hacked.emit()
 
     @pyqtSlot()
     def set_sys_time(self):
@@ -113,9 +116,8 @@ class dlFrame(baseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         dl_label = QLabel("DL-")
-        self.dl_edit = QSpinBox()
+        self.dl_edit = QLineEdit()
         self.dl_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.dl_edit.setMaximum(10000)
         self.layout.addWidget(dl_label)
         self.layout.addWidget(self.dl_edit)
         self.setLayout(self.layout)
@@ -213,12 +215,24 @@ class cfgFrame(baseFrame):
         super().__init__(parent)
         cfg_label = QLabel("Config:")
         self.path_edit = QLineEdit()
+        self.path_edit.setEnabled(False)
         self.browse_btn = QPushButton("Browse...")
         self.browse_btn.setAutoDefault(False)
+        self.browse_btn.clicked.connect(self.load_cfg)
         self.layout.addWidget(cfg_label)
         self.layout.addWidget(self.path_edit)
         self.layout.addWidget(self.browse_btn)
         self.setLayout(self.layout)
+
+    @pyqtSlot()
+    def load_cfg(self):
+        file_name, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Pectin Config File",
+            "",
+            "Pectin Config File (*.pcfg)"
+        )
+        self.path_edit.setText(file_name)
 
 
 class missionSetup(QDialog):
@@ -227,11 +241,17 @@ class missionSetup(QDialog):
         self.setWindowTitle("Mission Setup")
         self.setModal(True)
 
+        # Setup frame objects
         self.time_setup = timeFrame()
         self.date_setup = dateFrame()
         self.dl_setup = dlFrame()
         self.sys_setup = sysFrame()
         self.cfg_setup = cfgFrame()
+
+        # Setup frame signals/slots
+        self.time_setup.time_hacked.connect(self.validate)
+        self.dl_setup.dl_edit.textEdited.connect(self.validate)
+        self.sys_setup.sys_select.activated.connect(self.validate)
 
         # Populate dialog; Row 1
         main_layout = QGridLayout()
@@ -248,6 +268,7 @@ class missionSetup(QDialog):
         self.back_btn = QPushButton("< Back")
         self.back_btn.setEnabled(False)
         self.next_btn = QPushButton("Next >")
+        self.next_btn.setEnabled(False)
         self.next_btn.setDefault(True)
         self.cancel_btn = QPushButton("Cancel")
         self.button_box.addButton(self.back_btn, QDialogButtonBox.ActionRole)
@@ -257,3 +278,10 @@ class missionSetup(QDialog):
         main_layout.addWidget(self.button_box, 2, 0, -1, -1)
         self.setLayout(main_layout)
         self.setFixedSize(main_layout.sizeHint())
+
+    @pyqtSlot()
+    def validate(self):
+        time_valid = self.time_setup.hack_timer.isActive()
+        dl_valid = len(str.strip(self.dl_setup.dl_edit.text())) > 0
+        sys_valid = self.sys_setup.sys_select.currentIndex() >= 0
+        self.next_btn.setEnabled(time_valid and dl_valid and sys_valid)
