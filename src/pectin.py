@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import (
     Qt
 )
-from hack import hack
 from missionSetup import missionSetup
 
 
@@ -20,15 +19,13 @@ class pectin(QMainWindow):
         super().__init__()
         msn_setup_diag = missionSetup(self)
         msn_setup_diag.show()
-        # self.setupWindow()
+        self.setupWindow()
 
     def setupWindow(self):
         self.setWindowTitle("Pectin")
         central_widget = QWidget()
         main_layout = QVBoxLayout()
         central_widget.setLayout(main_layout)
-        hack_widget = hack(self)
-        main_layout.addWidget(hack_widget)
 
         main_split = QSplitter(Qt.Vertical)
         intfc_area = QWidget()
