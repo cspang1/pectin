@@ -150,7 +150,7 @@ class sysFrame(baseFrame):
                 self.cur_systems = json.load(sys_list)
 
         self.cur_index = 0
-        self.sys_select.addItem('...')
+        self.sys_select.setPlaceholderText('...')
         self.sys_select.addItems(self.cur_systems['systems'])
         self.sys_select.addItem('+ Add new')
 
@@ -166,7 +166,11 @@ class sysFrame(baseFrame):
             named = False
             selected = None
             while not named:
-                selected = QInputDialog.getText(self, 'Add New System', 'System:')
+                selected = QInputDialog.getText(
+                    self,
+                    'Add New System',
+                    'System:'
+                )
                 if not selected[1]:
                     return
                 elif not str.strip(selected[0]):
