@@ -2,7 +2,8 @@ from pathlib import Path
 import os
 import json
 from PyQt5.QtWidgets import (
-    QComboBox, QFileDialog,
+    QComboBox,
+    QFileDialog,
     QInputDialog,
     QLineEdit,
     QDialog,
@@ -12,7 +13,6 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QSizePolicy,
     QTimeEdit,
-    QSpinBox,
     QLabel,
     QFrame,
     QMessageBox,
@@ -128,6 +128,7 @@ class sysFrame(baseFrame):
         super().__init__(parent)
         sys_label = QLabel("System:")
         self.sys_select = QComboBox()
+        self.sys_select.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.layout.addWidget(sys_label)
         self.layout.addWidget(self.sys_select)
         self.setLayout(self.layout)
@@ -213,6 +214,7 @@ class sysFrame(baseFrame):
 class cfgFrame(baseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.cfg = None
         cfg_label = QLabel("Config:")
         self.path_edit = QLineEdit()
         self.path_edit.setEnabled(False)
@@ -232,7 +234,9 @@ class cfgFrame(baseFrame):
             "",
             "Pectin Config File (*.pcfg)"
         )
-        self.path_edit.setText(file_name)
+        if(file_name):
+            self.cfg = file_name
+            self.path_edit.setText(self.cfg)
 
 
 class missionSetup(QDialog):
