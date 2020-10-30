@@ -156,6 +156,7 @@ class sysFrame(baseFrame):
 
     def add_system(self, system):
         self.cur_systems['systems'].append(system)
+        self.cur_systems['systems'] = sorted(self.cur_systems['systems'])
         with open(self.sys_list_path, 'w') as sys_list:
             sys_list.write(json.dumps(self.cur_systems))
 
@@ -178,6 +179,16 @@ class sysFrame(baseFrame):
                         QMessageBox.Critical,
                         "Error",
                         "System name cannot be blank",
+                    ).exec()
+                elif selected[0] in [
+                    self.sys_select.itemText(i) for i in range(
+                        self.sys_select.count()
+                    )
+                ]:
+                    QMessageBox(
+                        QMessageBox.Critical,
+                        "Error",
+                        "System already exists",
                     ).exec()
                 else:
                     named = True
