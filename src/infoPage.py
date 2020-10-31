@@ -123,63 +123,66 @@ class dlFrame(baseFrame):
         self.setLayout(self.layout)
 
 
-class sysFrame(baseFrame):
+class mnemonicFrame(baseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
-        sys_label = QLabel("Mnemonic:")
-        self.sys_select = QComboBox()
-        self.sys_select.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.layout.addWidget(sys_label)
-        self.layout.addWidget(self.sys_select)
+        mnem_label = QLabel("Mnemonic:")
+        self.mnem_select = QComboBox()
+        self.mnem_select.setSizePolicy(
+            QSizePolicy.Expanding,
+            QSizePolicy.Fixed
+        )
+        self.layout.addWidget(mnem_label)
+        self.layout.addWidget(self.mnem_select)
         self.setLayout(self.layout)
 
-        self.sys_list_path = Path(__file__).parents[1] / "res" / "systems.json"
-        os.makedirs(os.path.dirname(self.sys_list_path), exist_ok=True)
-        if not self.sys_list_path.exists():
-            self.new_sys_file(self.sys_list_path)
+        self.mnem_list_path = Path(__file__).parents[1] / "res" / "mnemonics.json"
+        os.makedirs(os.path.dirname(self.mnem_list_path), exist_ok=True)
+        if not self.mnem_list_path.exists():
+            self.mnem_list_path(self.mnem_list_path)
 
-        self.cur_systems = None
-        self.load_systems()
-        # Un-comment to allow user to add systems
-        # self.sys_select.activated.connect(self.sys_selected)
+        self.cur_mnemonics = None
+        self.load_mnemonics()
+        # Un-comment to allow user to add mnemonics
+        # self.mnem_select.activated.connect(self.mnem_selected)
 
-    def load_systems(self, active=None):
-        self.sys_select.clear()
-        with open(self.sys_list_path, 'r') as sys_list:
+    def load_mnemonics(self, active=None):
+        self.mnem_select.clear()
+        with open(self.mnem_list_path, 'r') as mnem_list:
             try:
-                self.cur_systems = json.load(sys_list)
+                self.cur_mnemonics = json.load(mnem_list)
             except Exception:
-                self.new_sys_file(self.sys_list_path)
+                self.new_mnem_file()(self.mnem_list_path)
                 # How can we handle this kind of recursive try?
-                self.cur_systems = json.load(sys_list)
+                self.cur_mnemonics = json.load(mnem_list)
 
-        self.sys_select.setPlaceholderText('...')
-        self.sys_select.addItems(self.cur_systems['systems'])
-        # Un-comment to allow user to add systems
-        # self.sys_select.addItem('+ Add new')
+        self.mnem_select.setPlaceholderText('...')
+        self.mnem_select.addItems(self.cur_mnemonics['mnemonics'])
+        # Un-comment to allow user to add mnemonics
+        # self.mnem_select.addItem('+ Add new')
 
         if active:
-            self.sys_select.setCurrentIndex(self.sys_select.findText(active))
+            self.mnem_select.setCurrentIndex(self.mnem_select.findText(active))
 
-    def add_system(self, system):
-        self.cur_systems['systems'].append(system)
-        self.cur_systems['systems'] = sorted(
-            self.cur_systems['systems'],
+    def add_mnemonic(self, mnemonic):
+        self.cur_mnemonics['mnemonics'].append(mnemonic)
+        self.cur_mnemonics['mnemonics'] = sorted(
+            self.cur_mnemonics['mnemonics'],
             key=str.casefold
         )
-        with open(self.sys_list_path, 'w') as sys_list:
-            sys_list.write(json.dumps(self.cur_systems))
+        with open(self.mnem_list_path, 'w') as mnen_list:
+            mnen_list.write(json.dumps(self.cur_mnemonics))
 
     @pyqtSlot(int)
-    def sys_selected(self, index):
-        if index == self.sys_select.count() - 1:
+    def mnem_selected(self, index):
+        if index == self.mnem_select.count() - 1:
             named = False
             selected = None
             while not named:
                 selected = QInputDialog.getText(
                     self,
-                    'Add New System',
-                    'System:'
+                    'Add New Mnemonic',
+                    'Mnemonic:'
                 )
                 if not selected[1]:
                     return
@@ -187,31 +190,35 @@ class sysFrame(baseFrame):
                     QMessageBox(
                         QMessageBox.Critical,
                         "Error",
-                        "System name cannot be blank",
+                        "Mnemonic cannot be blank",
                     ).exec()
                 elif selected[0] in [
-                    self.sys_select.itemText(i) for i in range(
-                        self.sys_select.count()
+                    self.mnem_select.itemText(i) for i in range(
+                        self.mnem_select.count()
                     )
                 ]:
                     QMessageBox(
                         QMessageBox.Critical,
                         "Error",
-                        "System already exists",
+                        "Mnemonic already exists",
                     ).exec()
                 else:
                     named = True
-            system = selected[0]
-            self.add_system(system)
-            self.load_systems(system)
+            mnemonic = selected[0]
+            self.add_mnemonic()(mnemonic)
+            self.load_mnemonics()(mnemonic)
 
-    def new_sys_file(self, sys_list_path):
-        default = json.dumps({'systems': ['XXA', 'XXB']})
-        with open(sys_list_path, 'w') as sys_list:
-            sys_list.write(default)
+    def new_mnem_file(self, mnem_list_path):
+        default = json.dumps({'mnemonics': ['XXA', 'XXB']})
+        with open(mnem_list_path, 'w') as mnem_list:
+            mnem_list.write(default)
 
 
 class cfgFrame(baseFrame):
+    info_loaded = pyqtSignal(QDate, str, str)
+    systems_loaded = pyqtSignal(list)
+    applets_loaded = pyqtSignal(list)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.cfg = None
@@ -234,13 +241,38 @@ class cfgFrame(baseFrame):
             "",
             "Pectin Config File (*.pcfg)"
         )
-        if(file_name):
+        if file_name:
             self.cfg = file_name
             self.path_edit.setText(self.cfg)
+        else:
+            return
+
+        config = None
+        with open(file_name, 'r') as config_file:
+            try:
+                config = json.load(config_file)
+            except Exception as e:
+                QMessageBox(
+                    QMessageBox.Critical,
+                    "Error",
+                    "Unable to load config file: {}".format(e),
+                ).exec()
+                return
+
+        # Extract data
+        date = QDate.fromString(config['date'], "dd/MM/yyyy")
+        dl = config['dl']
+        mnemonic = config['mnemonic']
+        systems = config['systems']
+        applets = config['applets']
+
+        self.info_loaded.emit(date, dl, mnemonic)
+        self.systems_loaded.emit(systems)
+        self.applets_loaded.emit(applets)
 
 
 class infoPage(QWidget):
-    info_valid = pyqtSignal(bool)
+    info_valid = pyqtSignal(int, bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -248,13 +280,14 @@ class infoPage(QWidget):
         self.time_setup = timeFrame()
         self.date_setup = dateFrame()
         self.dl_setup = dlFrame()
-        self.sys_setup = sysFrame()
+        self.mnem_setup = mnemonicFrame()
         self.cfg_setup = cfgFrame()
 
         # Setup frame signals/slots
         self.time_setup.time_hacked.connect(self.validate)
         self.dl_setup.dl_edit.textEdited.connect(self.validate)
-        self.sys_setup.sys_select.activated.connect(self.validate)
+        self.mnem_setup.mnem_select.activated.connect(self.validate)
+        self.cfg_setup.info_loaded.connect(self.load_from_file)
 
         # Populate dialog; Row 1
         info_layout = QGridLayout()
@@ -263,14 +296,22 @@ class infoPage(QWidget):
 
         # Row 2
         info_layout.addWidget(self.dl_setup, 1, 0, 1, 2)
-        info_layout.addWidget(self.sys_setup, 1, 2, 1, 2)
+        info_layout.addWidget(self.mnem_setup, 1, 2, 1, 2)
         info_layout.addWidget(self.cfg_setup, 1, 4, 1, 2)
 
         self.setLayout(info_layout)
+
+    @pyqtSlot(QDate, str, str)
+    def load_from_file(self, date, dl, mnemonic):
+        self.date_setup.date_edit.setDate(date)
+        self.dl_setup.dl_edit.setText(dl)
+        self.mnem_setup.mnem_select.setCurrentText(mnemonic)
+        self.validate()
 
     @pyqtSlot()
     def validate(self):
         time_valid = self.time_setup.hack_timer.isActive()
         dl_valid = len(str.strip(self.dl_setup.dl_edit.text())) > 0
-        sys_valid = self.sys_setup.sys_select.currentIndex() >= 0
-        self.info_valid.emit(time_valid and dl_valid and sys_valid)
+        mnem_valid = self.mnem_setup.mnem_select.currentIndex() >= 0
+        print("well: ", time_valid and dl_valid and mnem_valid)
+        self.info_valid.emit(0, time_valid and dl_valid and mnem_valid)

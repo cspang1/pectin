@@ -15,7 +15,7 @@ import resources  # noqa: E401
 
 
 class sysPage(QWidget):
-    systems_valid = pyqtSignal(bool)
+    systems_valid = pyqtSignal(int, bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -52,6 +52,13 @@ class sysPage(QWidget):
         # Load list here from .pcfg
         # Check if list populated, and emit systems_valid accordingly
 
+    @pyqtSlot(list)
+    def load_from_file(self, systems):
+        self.system_list.clear()
+        for system in systems:
+            self.system_list.addItem(system)
+        self.validate()
+
     @pyqtSlot(QListWidgetItem)
     def item_selected(self, item):
         self.cur_item = item
@@ -70,7 +77,7 @@ class sysPage(QWidget):
             self.rem_btn.setEnabled(False)
             self.up_btn.setEnabled(False)
             self.down_btn.setEnabled(False)
-            self.systems_valid.emit(False)
+            self.systems_valid.emit(1, False)
         if self.system_list.currentRow() == 0:
             self.up_btn.setEnabled(False)
         if self.system_list.currentRow() == self.system_list.count() - 1:
@@ -109,7 +116,7 @@ class sysPage(QWidget):
 
         self.system_list.addItem(new_sys[0])
         self.system_list.setCurrentRow(self.system_list.count() - 1)
-        self.systems_valid.emit(True)
+        self.systems_valid.emit(1, True)
 
     @pyqtSlot()
     def move_up(self):
@@ -132,4 +139,4 @@ class sysPage(QWidget):
             self.down_btn.setEnabled(False)
 
     def validate(self):
-        self.systems_valid.emit(self.system_list.count() > 0)
+        self.systems_valid.emit(1, self.system_list.count() > 0)

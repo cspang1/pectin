@@ -40,6 +40,12 @@ class missionSetup(QDialog):
         self.multi_page.currentChanged.connect(self.page_changed)
         self.info_page.info_valid.connect(self.enable_next)
         self.systems_page.systems_valid.connect(self.enable_next)
+        self.info_page.cfg_setup.systems_loaded.connect(
+            self.systems_page.load_from_file
+        )
+        """ self.info_page.cfg_setup.applets_loaded.connect(
+            self.applets_page.load_from_file
+        ) """
         self.multi_page.addWidget(self.info_page)
         self.multi_page.addWidget(self.systems_page)
 
@@ -59,9 +65,10 @@ class missionSetup(QDialog):
         if new_index == 0:
             self.back_btn.setEnabled(False)
 
-    @pyqtSlot(bool)
-    def enable_next(self, enable):
-        self.next_btn.setEnabled(enable)
+    @pyqtSlot(int, bool)
+    def enable_next(self, page, enable):
+        if page == self.multi_page.currentIndex():
+            self.next_btn.setEnabled(enable)
 
     @pyqtSlot(int)
     def page_changed(self, index):
