@@ -33,6 +33,8 @@ class sysPage(QWidget):
         self.down_btn.setEnabled(False)
         self.rem_btn.clicked.connect(self.rem_system)
         self.add_btn.clicked.connect(self.add_system)
+        self.up_btn.clicked.connect(self.move_up)
+        self.down_btn.clicked.connect(self.move_down)
         sys_btn_layout.addWidget(self.up_btn)
         sys_btn_layout.addWidget(self.add_btn)
         sys_btn_layout.addWidget(self.rem_btn)
@@ -49,6 +51,10 @@ class sysPage(QWidget):
         self.rem_btn.setEnabled(True)
         self.up_btn.setEnabled(True)
         self.down_btn.setEnabled(True)
+        if self.system_list.currentRow() == 0:
+            self.up_btn.setEnabled(False)
+        if self.system_list.currentRow() == self.system_list.count() - 1:
+            self.down_btn.setEnabled(False)
 
     @pyqtSlot()
     def rem_system(self):
@@ -56,6 +62,10 @@ class sysPage(QWidget):
         if not self.system_list.count():
             self.rem_btn.setEnabled(False)
             self.up_btn.setEnabled(False)
+            self.down_btn.setEnabled(False)
+        if self.system_list.currentRow() == 0:
+            self.up_btn.setEnabled(False)
+        if self.system_list.currentRow() == self.system_list.count() - 1:
             self.down_btn.setEnabled(False)
 
     @pyqtSlot()
@@ -90,3 +100,23 @@ class sysPage(QWidget):
                 valid = True
 
         self.system_list.addItem(new_sys[0])
+
+    @pyqtSlot()
+    def move_up(self):
+        self.down_btn.setEnabled(True)
+        cur_index = self.system_list.currentRow()
+        cur_item = self.system_list.takeItem(cur_index)
+        self.system_list.insertItem(cur_index - 1, cur_item)
+        self.system_list.setCurrentRow(cur_index - 1)
+        if self.system_list.currentRow() == 0:
+            self.up_btn.setEnabled(False)
+
+    @pyqtSlot()
+    def move_down(self):
+        self.up_btn.setEnabled(True)
+        cur_index = self.system_list.currentRow()
+        cur_item = self.system_list.takeItem(cur_index)
+        self.system_list.insertItem(cur_index + 1, cur_item)
+        self.system_list.setCurrentRow(cur_index + 1)
+        if self.system_list.currentRow() == self.system_list.count() - 1:
+            self.down_btn.setEnabled(False)
