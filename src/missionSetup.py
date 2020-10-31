@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
-    QWidget
 )
 from PyQt5.QtCore import (
     pyqtSlot,
@@ -19,15 +18,6 @@ class missionSetup(QDialog):
         self.setWindowTitle("Mission Setup")
         self.setModal(True)
 
-        # Setup frame objects
-        self.multi_page = QStackedWidget()
-        self.main_layout = QVBoxLayout()
-        self.info_page = infoPage()
-        self.systems_page = sysPage()
-        self.info_page.info_valid.connect(self.enable_next)
-        # self.multi_page.addWidget(self.info_page)
-        self.multi_page.addWidget(self.systems_page)
-
         # Button box
         self.button_box = QDialogButtonBox()
         self.back_btn = QPushButton("< Back")
@@ -41,6 +31,17 @@ class missionSetup(QDialog):
         self.button_box.addButton(self.back_btn, QDialogButtonBox.ActionRole)
         self.button_box.addButton(self.next_btn, QDialogButtonBox.ActionRole)
         self.button_box.addButton(self.cancel_btn, QDialogButtonBox.RejectRole)
+
+        # Setup frame objects
+        self.multi_page = QStackedWidget()
+        self.main_layout = QVBoxLayout()
+        self.info_page = infoPage()
+        self.systems_page = sysPage()
+        self.multi_page.currentChanged.connect(self.page_changed)
+        self.info_page.info_valid.connect(self.enable_next)
+        self.systems_page.systems_valid.connect(self.enable_next)
+        self.multi_page.addWidget(self.info_page)
+        self.multi_page.addWidget(self.systems_page)
 
         self.main_layout.addWidget(self.multi_page)
         self.main_layout.addWidget(self.button_box)
@@ -61,3 +62,10 @@ class missionSetup(QDialog):
     @pyqtSlot(bool)
     def enable_next(self, enable):
         self.next_btn.setEnabled(enable)
+
+    @pyqtSlot(int)
+    def page_changed(self, index):
+        if index == 0:
+            self.info_page.validate()
+        elif index == 1:
+            self.systems_page.validate()

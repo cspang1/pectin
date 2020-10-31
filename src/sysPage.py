@@ -1,3 +1,4 @@
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QInputDialog, QListWidget,
     QListWidgetItem, QMessageBox,
@@ -7,11 +8,14 @@ from PyQt5.QtWidgets import (
     QWidget
 )
 from PyQt5.QtCore import (
-    Qt, pyqtSlot,
+    pyqtSignal,
+    pyqtSlot
 )
+import resources  # noqa: E401
 
 
 class sysPage(QWidget):
+    systems_valid = pyqtSignal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -24,10 +28,10 @@ class sysPage(QWidget):
         info_layout = QGridLayout()
         sys_btn_layout = QVBoxLayout()
 
-        self.up_btn = QPushButton("^")
-        self.add_btn = QPushButton("+")
-        self.rem_btn = QPushButton("-")
-        self.down_btn = QPushButton("v")
+        self.up_btn = QPushButton(QIcon(":/icons/up.png"), "")
+        self.add_btn = QPushButton(QIcon(":/icons/add.png"), "")
+        self.rem_btn = QPushButton(QIcon(":/icons/remove.png"), "")
+        self.down_btn = QPushButton(QIcon(":/icons/down.png"), "")
         self.rem_btn.setEnabled(False)
         self.up_btn.setEnabled(False)
         self.down_btn.setEnabled(False)
@@ -44,6 +48,9 @@ class sysPage(QWidget):
         info_layout.addWidget(self.system_list, 0, 0, 4, 3)
         info_layout.addLayout(sys_btn_layout, 0, 3, 4, 1)
         self.setLayout(info_layout)
+
+        # Load list here from .pcfg
+        # Check if list populated, and emit systems_valid accordingly
 
     @pyqtSlot(QListWidgetItem)
     def item_selected(self, item):
@@ -63,6 +70,7 @@ class sysPage(QWidget):
             self.rem_btn.setEnabled(False)
             self.up_btn.setEnabled(False)
             self.down_btn.setEnabled(False)
+            self.systems_valid.emit(False)
         if self.system_list.currentRow() == 0:
             self.up_btn.setEnabled(False)
         if self.system_list.currentRow() == self.system_list.count() - 1:
@@ -100,6 +108,8 @@ class sysPage(QWidget):
                 valid = True
 
         self.system_list.addItem(new_sys[0])
+        self.system_list.setCurrentRow(self.system_list.count() - 1)
+        self.systems_valid.emit(True)
 
     @pyqtSlot()
     def move_up(self):
@@ -120,3 +130,6 @@ class sysPage(QWidget):
         self.system_list.setCurrentRow(cur_index + 1)
         if self.system_list.currentRow() == self.system_list.count() - 1:
             self.down_btn.setEnabled(False)
+
+    def validate(self):
+        self.systems_valid.emit(self.system_list.count() > 0)
