@@ -1,0 +1,28 @@
+{
+    "date": "22/03/1993",
+    "dl": "420",
+    "mnemonic": "XXA",
+    "systems": [
+        "QQA",
+        "QQB",
+        "BQS",
+        "ZZT",
+        "LOL",
+        "WTF"
+    ],
+    "events": [
+        "Checked in",
+        "Checked out",
+        "Saw activity",
+        "Did its job",
+        "Made everyone proud",
+        "Broke something",
+        "Saw a bird",
+        "Saw a plane",
+        "Got blocked",
+        "Made a fast escape"
+    ],
+    "applets": [
+        "direction"
+    ]
+}
