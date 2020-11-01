@@ -14,13 +14,14 @@ from PyQt5.QtCore import (
     Qt,
     pyqtSignal
 )
-from missionSetup import missionSetup
+from setupDiag import setupDiag
 import resources
 import json
 
 
 class landingPage(QWidget):
     mission_ready = pyqtSignal(dict)
+    config_ready = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -42,11 +43,12 @@ class landingPage(QWidget):
             QSizePolicy.Minimum
         )
         self.new_msn_btn.clicked.connect(self.open_new_msn_diag)
+        self.new_cfg_btn.clicked.connect(self.open_new_cfg_diag)
         btn_layout.addWidget(self.new_cfg_btn)
         btn_layout.addWidget(self.new_msn_btn)
 
         # Setup labels
-        new_cfg_label = QLabel("Create New Confguration")
+        new_cfg_label = QLabel("Create New Config")
         new_msn_label = QLabel("Start New Mission")
         font = QFont("Lucida Console", 64, 5, False)
         new_cfg_label.setFont(font)
@@ -67,14 +69,21 @@ class landingPage(QWidget):
         main_layout.addLayout(label_layout, 3, 0, 1, -1)
         self.setLayout(main_layout)
 
-    def open_new_msn_diag(self):
-        # DEBUG
-        config = json.loads("{\"date\": \"22/03/1993\", \"dl\": \"420\", \"mnemonic\": \"XXA\", \"systems\": [\"QQA\", \"QQB\", \"BQS\", \"ZZT\", \"LOL\", \"WTF\"], \"events\": [\"Checked in\", \"Checked out\", \"Saw activity\", \"Did its job\", \"Made everyone proud\", \"Broke something\", \"Saw a bird\", \"Saw a plane\", \"Got blocked\", \"Made a fast escape\"], \"applets\": [\"direction\"]}")
-        self.mission_ready.emit(config)
-        return
-        # DEBUG
-        msn_setup_diag = missionSetup(self)
+    def open_new_msn_diag(self, config=None):
+        # # DEBUG
+        # config = json.loads("{\"date\": \"22/03/1993\", \"dl\": \"420\", \"mnemonic\": \"XXA\", \"systems\": [\"QQA\", \"QQB\", \"BQS\", \"ZZT\", \"LOL\", \"WTF\"], \"events\": [\"Checked in\", \"Checked out\", \"Saw activity\", \"Did its job\", \"Made everyone proud\", \"Broke something\", \"Saw a bird\", \"Saw a plane\", \"Got blocked\", \"Made a fast escape\"], \"applets\": [\"direction\"]}")
+        # self.mission_ready.emit(config)
+        # return
+        # # DEBUG
+        msn_setup_diag = setupDiag(True, config, self)
         if msn_setup_diag.exec():
             config = msn_setup_diag.get_config()
             del msn_setup_diag
             self.mission_ready.emit(config)
+
+    def open_new_cfg_diag(self, config=None):
+        cfg_setup_diag = setupDiag(False, config, self)
+        if cfg_setup_diag.exec():
+            config = cfg_setup_diag.get_config_file()
+            del cfg_setup_diag
+            self.config_ready.emit(config)

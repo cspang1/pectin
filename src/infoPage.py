@@ -40,7 +40,7 @@ class baseFrame(QFrame):
 class timeFrame(baseFrame):
     time_hacked = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, is_mission, parent=None):
         super().__init__(parent)
 
         # Setup frame
@@ -51,9 +51,18 @@ class timeFrame(baseFrame):
         self.time_edit.setDisplayFormat("HH:mm:ss")
         self.hack_btn = QPushButton("Hack")
         self.hack_btn.setAutoDefault(False)
-        self.hack_btn.setStyleSheet("background-color: red; color: white;")
+        if is_mission:
+            self.hack_btn.setStyleSheet("background-color: red; color: white;")
+        else:
+            self.hack_btn.setStyleSheet("background-color: gray; color: white;")
         self.sys_time_btn = QPushButton("Use System Time")
         self.sys_time_btn.setAutoDefault(False)
+
+        if not is_mission:
+            self.time_edit.setEnabled(False)
+            self.hack_btn.setEnabled(False)
+            self.sys_time_btn.setEnabled(False)
+
         self.layout.addWidget(time_label)
         self.layout.addWidget(self.time_edit)
         self.layout.addWidget(zulu_label)
@@ -235,18 +244,22 @@ class cfgFrame(baseFrame):
         self.setLayout(self.layout)
 
     @pyqtSlot()
-    def load_cfg(self):
-        file_name, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select Pectin Config File",
-            "",
-            "Pectin Config File (*.pcfg)"
-        )
-        if file_name:
+    def load_cfg(self, file_name=None):
+        if not file_name:
+            file_name, _ = QFileDialog.getOpenFileName(
+                self,
+                "Select Pectin Config File",
+                "",
+                "Pectin Config File (*.pcfg)"
+            )
+            if file_name:
+                self.cfg = file_name
+                self.path_edit.setText(self.cfg)
+            else:
+                return
+        else:
             self.cfg = file_name
             self.path_edit.setText(self.cfg)
-        else:
-            return
 
         config = None
         with open(file_name, 'r') as config_file:
@@ -277,10 +290,11 @@ class cfgFrame(baseFrame):
 class infoPage(QWidget):
     info_valid = pyqtSignal(int, bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, is_mission, parent=None):
         super().__init__(parent)
+        self.is_mission = is_mission
 
-        self.time_setup = timeFrame()
+        self.time_setup = timeFrame(self.is_mission)
         self.date_setup = dateFrame()
         self.dl_setup = dlFrame()
         self.mnem_setup = mnemonicFrame()
@@ -311,9 +325,16 @@ class infoPage(QWidget):
         self.mnem_setup.mnem_select.setCurrentText(mnemonic)
         self.validate()
 
+    def preload_cfg(self, config):
+        self.cfg_setup.load_cfg(config)
+
     @pyqtSlot()
     def validate(self):
         time_valid = self.time_setup.hack_timer.isActive()
         dl_valid = len(str.strip(self.dl_setup.dl_edit.text())) > 0
         mnem_valid = self.mnem_setup.mnem_select.currentIndex() >= 0
-        self.info_valid.emit(0, time_valid and dl_valid and mnem_valid)
+
+        if not self.is_mission:
+            self.info_valid.emit(0, dl_valid and mnem_valid)
+        else:
+            self.info_valid.emit(0, time_valid and dl_valid and mnem_valid)

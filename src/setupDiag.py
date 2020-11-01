@@ -1,6 +1,7 @@
+import json
 from PyQt5.QtWidgets import (
     QDialog,
-    QDialogButtonBox,
+    QDialogButtonBox, QFileDialog,
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
@@ -13,10 +14,15 @@ from sysPage import sysPage
 from eventsPage import eventsPage
 
 
-class missionSetup(QDialog):
-    def __init__(self, parent):
+class setupDiag(QDialog):
+    def __init__(self, is_mission, config, parent):
         super().__init__(parent)
-        self.setWindowTitle("Mission Setup")
+        self.is_mission = is_mission
+        if not self.is_mission:
+            self.setWindowTitle("Config Setup")
+        else:
+            self.setWindowTitle("Mission Setup")
+
         self.setModal(True)
 
         # Button box
@@ -37,7 +43,7 @@ class missionSetup(QDialog):
         # Setup frame objects
         self.multi_page = QStackedWidget()
         self.main_layout = QVBoxLayout()
-        self.info_page = infoPage()
+        self.info_page = infoPage(self.is_mission)
         self.systems_page = sysPage()
         self.events_page = eventsPage()
         self.multi_page.currentChanged.connect(self.page_changed)
@@ -50,24 +56,43 @@ class missionSetup(QDialog):
         self.info_page.cfg_setup.events_loaded.connect(
             self.events_page.load_from_file
         )
-        """ self.info_page.cfg_setup.applets_loaded.connect(
-            self.applets_page.load_from_file
-        ) """
         self.multi_page.addWidget(self.info_page)
         self.multi_page.addWidget(self.systems_page)
         self.multi_page.addWidget(self.events_page)
-
         self.main_layout.addWidget(self.multi_page)
         self.main_layout.addWidget(self.button_box)
+
+        if config:
+            self.info_page.preload_cfg(config)
+        self.new_config = None
 
         self.setLayout(self.main_layout)
 
     def next_page(self):
         if self.multi_page.currentIndex() == 2:
-            self.accept()
+            if self.is_mission:
+                self.accept()
+            else:
+                save_cfg_path, _ = QFileDialog.getSaveFileName(
+                    self,
+                    "Save Config File",
+                    "",
+                    "Pectin Config File (*.pcfg)"
+                )
+                if save_cfg_path:
+                    with open(save_cfg_path, 'w') as save_cfg_file:
+                        save_cfg_file.write(json.dumps(self.get_config()))
+                    self.new_config = save_cfg_path
+                    self.accept()
+                else:
+                    return
+
         self.multi_page.setCurrentIndex(self.multi_page.currentIndex() + 1)
         if self.multi_page.currentIndex() == 2:
-            self.next_btn.setText("Ok")
+            if self.is_mission:
+                self.next_btn.setText("Ok")
+            else:
+                self.next_btn.setText("Save")
         self.back_btn.setEnabled(True)
 
     def prev_page(self):
@@ -112,3 +137,6 @@ class missionSetup(QDialog):
         config['events'] = events_list
         config['applets'] = ["direction"]
         return config
+
+    def get_config_file(self):
+        return self.new_config
