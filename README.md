@@ -1,4 +1,4 @@
-<h1 align="center"><img src="https://i.imgur.com/bqKQmiJ.png" alt="JCAP" align="center"></h1>
+<h1 align="center"><img src="https://i.imgur.com/WoQ43pn.png" alt="JCAP" align="center"></h1>
 
 <hr>
 
