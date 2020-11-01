@@ -97,7 +97,9 @@ class missionSetup(QDialog):
         info = self.info_page
         systems = self.systems_page
         events = self.events_page
-        config['date'] = info.date_setup.date_edit.date()
+        config['date'] = info.date_setup.date_edit.date().toString(
+            "dd/MM/yyyy"
+        )
         config['dl'] = info.dl_setup.dl_edit.text()
         config['mnemonic'] = info.mnem_setup.mnem_select.currentText()
         system_list = []
