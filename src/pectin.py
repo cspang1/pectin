@@ -1,4 +1,5 @@
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QMainWindow,
     QMessageBox
@@ -11,13 +12,11 @@ class pectin(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setupWindow()
-
-    def setupWindow(self):
         self.setWindowTitle("Pectin")
         self.landing_page = landingPage()
         self.landing_page.mission_ready.connect(self.setup_mission)
         self.landing_page.config_ready.connect(self.save_config)
+        self.setWindowIcon(QIcon(":/icons/pectin.png"))
         self.setCentralWidget(self.landing_page)
 
     @pyqtSlot(dict)

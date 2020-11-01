@@ -1,5 +1,5 @@
 
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -18,6 +18,7 @@ from sysPage import sysPage
 from eventsPage import eventsPage
 import json
 
+
 class setupDiag(QDialog):
     def __init__(self, is_mission, config, parent):
         super().__init__(parent)
@@ -27,6 +28,7 @@ class setupDiag(QDialog):
         else:
             self.setWindowTitle("Mission Setup")
 
+        self.setWindowIcon(QIcon(":/icons/setup.png"))
         self.setModal(True)
 
         # Button box
