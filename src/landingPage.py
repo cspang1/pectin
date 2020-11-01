@@ -1,5 +1,6 @@
 from PyQt5.QtGui import (
-    QFont, QIcon
+    QFont,
+    QIcon
 )
 from PyQt5.QtWidgets import (
     QGridLayout,
@@ -15,7 +16,7 @@ from PyQt5.QtCore import (
     pyqtSignal
 )
 from setupDiag import setupDiag
-import resources
+import resources  # noqa: E401
 import json
 
 
@@ -32,6 +33,12 @@ class landingPage(QWidget):
         # Setup buttons
         self.new_cfg_btn = QPushButton(QIcon(":/icons/new_config.png"), "")
         self.new_msn_btn = QPushButton(QIcon(":/icons/new_mission.png"), "")
+        self.new_cfg_btn.enterEvent = self.cfg_btn_active
+        self.new_msn_btn.enterEvent = self.msn_btn_active
+        self.new_cfg_btn.leaveEvent = self.cfg_btn_inactive
+        self.new_msn_btn.leaveEvent = self.msn_btn_inactive
+        self.cfg_btn_inactive()
+        self.msn_btn_inactive()
         self.new_cfg_btn.setIconSize(QSize(512, 512))
         self.new_msn_btn.setIconSize(QSize(512, 512))
         self.new_cfg_btn.setSizePolicy(
@@ -53,12 +60,6 @@ class landingPage(QWidget):
         font = QFont("Lucida Console", 64, 5, False)
         new_cfg_label.setFont(font)
         new_msn_label.setFont(font)
-        self.new_cfg_btn.setStyleSheet(
-                "background-color: #76FF8B"
-            )
-        self.new_msn_btn.setStyleSheet(
-                "background-color: #FF7575"
-            )
         new_cfg_label.setAlignment(Qt.AlignCenter)
         new_msn_label.setAlignment(Qt.AlignCenter)
 
@@ -87,3 +88,23 @@ class landingPage(QWidget):
             config = cfg_setup_diag.get_config_file()
             del cfg_setup_diag
             self.config_ready.emit(config)
+
+    def cfg_btn_active(self, event=None):
+        self.new_cfg_btn.setStyleSheet(
+                "background-color: #76FF8B"
+            )
+
+    def cfg_btn_inactive(self, event=None):
+        self.new_cfg_btn.setStyleSheet(
+                "background-color: #2EC845"
+            )
+
+    def msn_btn_active(self, event=None):
+        self.new_msn_btn.setStyleSheet(
+                "background-color: #FF7575"
+            )
+
+    def msn_btn_inactive(self, event=None):
+        self.new_msn_btn.setStyleSheet(
+                "background-color: #F13131"
+            )

@@ -1,6 +1,3 @@
-from pathlib import Path
-import os
-import json
 from PyQt5.QtWidgets import (
     QComboBox,
     QFileDialog,
@@ -25,6 +22,9 @@ from PyQt5.QtCore import (
     pyqtSignal,
     pyqtSlot
 )
+from pathlib import Path
+import os
+import json
 
 
 class baseFrame(QFrame):

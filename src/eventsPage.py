@@ -1,7 +1,9 @@
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
-    QInputDialog, QListWidget,
-    QListWidgetItem, QMessageBox,
+    QInputDialog,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
     QPushButton,
     QGridLayout,
     QVBoxLayout,

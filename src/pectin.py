@@ -1,6 +1,7 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import (
-    QMainWindow, QMessageBox
+    QMainWindow,
+    QMessageBox
 )
 from missionPage import missionPage
 from landingPage import landingPage

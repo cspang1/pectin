@@ -1,7 +1,11 @@
-import json
+
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QDialog,
-    QDialogButtonBox, QFileDialog,
+    QDialogButtonBox,
+    QFileDialog,
+    QLabel,
+    QLayout,
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
@@ -12,7 +16,7 @@ from PyQt5.QtCore import (
 from infoPage import infoPage
 from sysPage import sysPage
 from eventsPage import eventsPage
-
+import json
 
 class setupDiag(QDialog):
     def __init__(self, is_mission, config, parent):
@@ -56,11 +60,16 @@ class setupDiag(QDialog):
         self.info_page.cfg_setup.events_loaded.connect(
             self.events_page.load_from_file
         )
+        header_font = QFont("Consolas", 12, -1)
+        self.header = QLabel("Mission Info:")
+        self.header.setFont(header_font)
         self.multi_page.addWidget(self.info_page)
         self.multi_page.addWidget(self.systems_page)
         self.multi_page.addWidget(self.events_page)
+        self.main_layout.addWidget(self.header)
         self.main_layout.addWidget(self.multi_page)
         self.main_layout.addWidget(self.button_box)
+        self.main_layout.setSizeConstraint(QLayout.SetFixedSize)
 
         if config:
             self.info_page.preload_cfg(config)
@@ -94,6 +103,7 @@ class setupDiag(QDialog):
             else:
                 self.next_btn.setText("Save")
         self.back_btn.setEnabled(True)
+        self.set_page_header()
 
     def prev_page(self):
         new_index = self.multi_page.currentIndex() - 1
@@ -102,6 +112,16 @@ class setupDiag(QDialog):
 
         if new_index == 0:
             self.back_btn.setEnabled(False)
+
+        self.set_page_header()
+
+    def set_page_header(self):
+        if self.multi_page.currentIndex() == 0:
+            self.header.setText("Mission Info:")
+        elif self.multi_page.currentIndex() == 1:
+            self.header.setText("Systems List:")
+        elif self.multi_page.currentIndex() == 2:
+            self.header.setText("Events List:")
 
     @pyqtSlot(int, bool)
     def enable_next(self, page, enable):
