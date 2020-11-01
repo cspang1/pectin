@@ -11,33 +11,24 @@ from PyQt5.QtCore import (
     Qt
 )
 from missionSetup import missionSetup
+import json
 
 
 class pectin(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        msn_setup_diag = missionSetup(self)
-        msn_setup_diag.show()
+        # msn_setup_diag = missionSetup(self)
+        # if msn_setup_diag.exec():
+        #     config = msn_setup_diag.get_config()
+
+        # DEBUG
+        config = json.loads("{\"date\": \"PyQt5.QtCore.QDate(1993, 3, 22)\", \"dl\": \"420\", \"mnemonic\": \"XXA\", \"systems\": [\"QQA\", \"QQB\", \"BQS\", \"ZZT\", \"LOL\", \"WTF\"], \"events\": [\"Checked in\", \"Checked out\", \"Saw activity\", \"Did its job\", \"Made everyone proud\", \"Broke something\", \"Saw a bird\", \"Saw a plane\", \"Got blocked\", \"Made a fast escape\"], \"applets\": [\"direction\"]}")
+        # DEBUG
+
         self.setupWindow()
 
     def setupWindow(self):
         self.setWindowTitle("Pectin")
         central_widget = QWidget()
-        main_layout = QVBoxLayout()
-        central_widget.setLayout(main_layout)
-
-        main_split = QSplitter(Qt.Vertical)
-        intfc_area = QWidget()
-        log_area = QTextEdit()
-        test_btn_1 = QPushButton("ABC")
-        test_btn_2 = QPushButton("DEF")
-        btn_layout = QHBoxLayout()
-        btn_layout.addWidget(test_btn_1)
-        btn_layout.addWidget(test_btn_2)
-        intfc_area.setLayout(btn_layout)
-        main_split.addWidget(intfc_area)
-        main_split.addWidget(log_area)
-
-        main_layout.addWidget(main_split)
         self.setCentralWidget(central_widget)

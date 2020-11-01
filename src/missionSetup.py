@@ -63,6 +63,8 @@ class missionSetup(QDialog):
         self.setLayout(self.main_layout)
 
     def next_page(self):
+        if self.multi_page.currentIndex() == 2:
+            self.accept()
         self.multi_page.setCurrentIndex(self.multi_page.currentIndex() + 1)
         if self.multi_page.currentIndex() == 2:
             self.next_btn.setText("Ok")
@@ -89,3 +91,22 @@ class missionSetup(QDialog):
             self.systems_page.validate()
         elif index == 2:
             self.events_page.validate()
+
+    def get_config(self):
+        config = {}
+        info = self.info_page
+        systems = self.systems_page
+        events = self.events_page
+        config['date'] = info.date_setup.date_edit.date()
+        config['dl'] = info.dl_setup.dl_edit.text()
+        config['mnemonic'] = info.mnem_setup.mnem_select.currentText()
+        system_list = []
+        for index in range(systems.system_list.count()):
+            system_list.append(systems.system_list.item(index).text())
+        config['systems'] = system_list
+        events_list = []
+        for index in range(events.event_list.count()):
+            events_list.append(events.event_list.item(index).text())
+        config['events'] = events_list
+        config['applets'] = ["direction"]
+        return config
