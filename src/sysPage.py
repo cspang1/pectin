@@ -21,10 +21,6 @@ class sysPage(QWidget):
         super().__init__(parent)
 
         self.system_list = QListWidget()
-        self.system_list.addItem("QQA")
-        self.system_list.addItem("QQB")
-        self.system_list.addItem("QBG")
-
         info_layout = QGridLayout()
         sys_btn_layout = QVBoxLayout()
 

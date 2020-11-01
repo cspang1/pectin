@@ -217,6 +217,7 @@ class mnemonicFrame(baseFrame):
 class cfgFrame(baseFrame):
     info_loaded = pyqtSignal(QDate, str, str)
     systems_loaded = pyqtSignal(list)
+    events_loaded = pyqtSignal(list)
     applets_loaded = pyqtSignal(list)
 
     def __init__(self, parent=None):
@@ -264,10 +265,12 @@ class cfgFrame(baseFrame):
         dl = config['dl']
         mnemonic = config['mnemonic']
         systems = config['systems']
+        events = config['events']
         applets = config['applets']
 
         self.info_loaded.emit(date, dl, mnemonic)
         self.systems_loaded.emit(systems)
+        self.events_loaded.emit(events)
         self.applets_loaded.emit(applets)
 
 
@@ -313,5 +316,4 @@ class infoPage(QWidget):
         time_valid = self.time_setup.hack_timer.isActive()
         dl_valid = len(str.strip(self.dl_setup.dl_edit.text())) > 0
         mnem_valid = self.mnem_setup.mnem_select.currentIndex() >= 0
-        print("well: ", time_valid and dl_valid and mnem_valid)
         self.info_valid.emit(0, time_valid and dl_valid and mnem_valid)

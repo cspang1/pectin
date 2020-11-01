@@ -8,7 +8,7 @@ if __name__ == "__main__":
     window = pectin()
 
     window.resize(800, 600)
-    # window.showMaximized()
+    window.showMaximized()
 
     # Start the event loop.
     app.exec_()
