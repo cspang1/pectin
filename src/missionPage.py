@@ -1,6 +1,11 @@
 from PyQt5.QtWidgets import (
-    QHBoxLayout, QPushButton, QVBoxLayout, QWidget,
+    QHBoxLayout,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget
 )
+
 
 class missionPage(QWidget):
     def __init__(self, parent=None):
@@ -17,7 +22,15 @@ class missionPage(QWidget):
     def load_mission(self, config):
         for system in config['systems']:
             temp_btn = QPushButton(system)
+            temp_btn.setSizePolicy(
+                QSizePolicy.Preferred,
+                QSizePolicy.Minimum
+            )
             self.sys_layout.addWidget(temp_btn)
         for event in config['events']:
             temp_btn = QPushButton(event)
+            temp_btn.setSizePolicy(
+                QSizePolicy.Preferred,
+                QSizePolicy.Minimum
+            )
             self.event_layout.addWidget(temp_btn)

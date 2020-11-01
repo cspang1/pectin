@@ -48,8 +48,9 @@ class landingPage(QWidget):
         # Setup labels
         new_cfg_label = QLabel("Create New Confguration")
         new_msn_label = QLabel("Start New Mission")
-        new_cfg_label.setFont(QFont("Helvetica", 72, 5, False))
-        new_msn_label.setFont(QFont("Helvetica", 72, 5, False))
+        font = QFont("Lucida Console", 64, 5, False)
+        new_cfg_label.setFont(font)
+        new_msn_label.setFont(font)
         self.new_cfg_btn.setStyleSheet(
                 "background-color: #76FF8B"
             )
