@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 )
 from missionPage import missionPage
 from landingPage import landingPage
+from dirApplet import test
 
 
 class pectin(QMainWindow):
@@ -18,6 +19,8 @@ class pectin(QMainWindow):
         self.landing_page.config_ready.connect(self.save_config)
         self.setWindowIcon(QIcon(":/icons/pectin.png"))
         self.setCentralWidget(self.landing_page)
+        tester = test()
+        tester.exec()
 
     @pyqtSlot(dict)
     def setup_mission(self, config):
