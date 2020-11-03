@@ -37,10 +37,10 @@ class CompassWedge(QWidget):
             id,
             parent=None):
         super().__init__(parent)
-        self.start = start_angle
         self.setFixedSize(w_width, w_height)
-        self.offset = w_offset
         self.setMouseTracking(True)
+        self.start = start_angle
+        self.offset = w_offset
         self.active = False
         self.id = id
 
@@ -49,7 +49,9 @@ class CompassWedge(QWidget):
         super().paintEvent(event)
         painter.setRenderHint(QPainter.Antialiasing)
         brush = None
-        if self.active:
+        if not self.parent().isEnabled():
+            brush = QBrush(QColor(Qt.lightGray))
+        elif self.active:
             brush = QBrush(QColor(Qt.red))
         else:
             brush = QBrush(QColor(Qt.white))
@@ -82,6 +84,8 @@ class Compass(QWidget):
         self.center = QPoint(self.span/2, self.span/2)
         self.setFixedSize(self.span, self.span)
         self.setMouseTracking(True)
+        # self.set_enabled(False)
+        self.setEnabled(False)
 
         self.wedges = []
         for start in range(0, 360 * 16, 45 * 16):
