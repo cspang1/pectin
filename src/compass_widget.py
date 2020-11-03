@@ -1,12 +1,18 @@
-from PyQt5.QtCore import QPoint, QSize, Qt
+from PyQt5.QtCore import (
+    QPoint,
+    QSize,
+    Qt, pyqtSignal
+)
 from PyQt5.QtGui import (
-    QBrush, QColor, QFont,
+    QBrush,
+    QColor,
+    QFont,
     QPainter,
     QPen
 )
 from PyQt5.QtWidgets import (
-    QDialog,
-    QGridLayout, QLabel, QSizePolicy,
+    QLabel,
+    QSizePolicy,
     QWidget
 )
 from math import (
@@ -18,16 +24,25 @@ from math import (
     cos,
     radians
 )
+from angles import Angle
 
 
-class compassWedge(QWidget):
-    def __init__(self, start_angle, w, h, o, parent=None):
+class CompassWedge(QWidget):
+    def __init__(
+            self,
+            start_angle,
+            w_width,
+            w_height,
+            w_offset,
+            id,
+            parent=None):
         super().__init__(parent)
         self.start = start_angle
-        self.setFixedSize(w, h)
-        self.offset = o
+        self.setFixedSize(w_width, w_height)
+        self.offset = w_offset
         self.setMouseTracking(True)
         self.active = False
+        self.id = id
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -57,7 +72,9 @@ class compassWedge(QWidget):
         self.update()
 
 
-class compassApplet(QWidget):
+class Compass(QWidget):
+    angle_event = pyqtSignal(Angle)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.span = 600
@@ -69,16 +86,17 @@ class compassApplet(QWidget):
         self.wedges = []
         for start in range(0, 360 * 16, 45 * 16):
             self.wedges.append(
-                compassWedge(
+                CompassWedge(
                     start,
                     self.span,
                     self.span,
                     self.offset,
+                    Angle(floor(((360 - start/16 + 45) % 360)/45)),
                     self
                 )
             )
 
-        deg_font = QFont("Consolas", 18, 2)
+        deg_font = QFont("Consolas", 22, 2)
         for deg in range(8):
             temp = QLabel(self)
             angle = deg * 45
@@ -99,20 +117,20 @@ class compassApplet(QWidget):
         dist = self.span/2 - self.offset + 10
         if angle == 0:
             off_x = -size_x/2
-        if angle == 90:
+        elif angle == 90:
             off_y = -size_y/2
-        if angle == 135:
+        elif angle == 135:
             off_y = -size_y
-        if angle == 180:
+        elif angle == 180:
             off_x = -size_x/2
             off_y = -size_y
-        if angle == 225:
+        elif angle == 225:
             off_y = -size_y
             off_x = -size_x
-        if angle == 270:
+        elif angle == 270:
             off_y = -size_y/2
             off_x = -size_x
-        if angle == 315:
+        elif angle == 315:
             off_x = -size_x
 
         theta_rad = pi/2 - radians(angle)
@@ -128,35 +146,31 @@ class compassApplet(QWidget):
         y_2 = self.center.y()
         dist = floor(hypot(x_2 - x_1, y_2 - y_1))
         angle = atan2(x_2 - x_1, y_2 - y_1)
-        if dist <= 250:
+        if dist <= floor(self.span/2) - self.offset:
             if 0 <= angle < (2*pi)/8:
                 self.activate_wedge(2)
-            if (2*pi)/8 <= angle < 2*(2*pi)/8:
+            elif (2*pi)/8 <= angle < 2*(2*pi)/8:
                 self.activate_wedge(3)
-            if 2*(2*pi)/8 <= angle < 3*(2*pi)/8:
+            elif 2*(2*pi)/8 <= angle < 3*(2*pi)/8:
                 self.activate_wedge(4)
-            if 3*(2*pi)/8 <= angle < 4*(2*pi)/8:
+            elif 3*(2*pi)/8 <= angle < 4*(2*pi)/8:
                 self.activate_wedge(5)
-            if 0 > angle >= -(2*pi)/8:
+            elif 0 > angle >= -(2*pi)/8:
                 self.activate_wedge(1)
-            if -(2*pi)/8 > angle >= -2*(2*pi)/8:
+            elif -(2*pi)/8 > angle >= -2*(2*pi)/8:
                 self.activate_wedge(0)
-            if -2*(2*pi)/8 > angle >= -3*(2*pi)/8:
+            elif -2*(2*pi)/8 > angle >= -3*(2*pi)/8:
                 self.activate_wedge(7)
-            if -3*(2*pi)/8 > angle >= -4*(2*pi)/8:
+            elif -3*(2*pi)/8 > angle >= -4*(2*pi)/8:
                 self.activate_wedge(6)
         else:
             self.activate_wedge(-1)
 
+    def mouseReleaseEvent(self, event):
+        for wedge in self.wedges:
+            if wedge.active:
+                self.angle_event.emit(wedge.id)
+
     def activate_wedge(self, active):
-        for index, wedge in enumerate(self.wedges):
+        for index in range(self.wedges.__len__()):
             self.wedges[index].activate(True if index == active else False)
-
-
-class test(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        ca = compassApplet()
-        la = QGridLayout()
-        la.addWidget(ca, 1, 1)
-        self.setLayout(la)

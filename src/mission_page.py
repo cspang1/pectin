@@ -5,9 +5,10 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget
 )
+from compass_widget import Compass
 
 
-class missionPage(QWidget):
+class MissionPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -16,6 +17,7 @@ class missionPage(QWidget):
         self.event_layout = QVBoxLayout()
         self.main_layout.addLayout(self.sys_layout)
         self.main_layout.addLayout(self.event_layout)
+        self.compass = Compass()
 
         self.setLayout(self.main_layout)
 
@@ -34,3 +36,4 @@ class missionPage(QWidget):
                 QSizePolicy.Minimum
             )
             self.event_layout.addWidget(temp_btn)
+        self.main_layout.addWidget(self.compass)

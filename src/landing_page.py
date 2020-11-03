@@ -15,12 +15,12 @@ from PyQt5.QtCore import (
     Qt,
     pyqtSignal
 )
-from setupDiag import setupDiag
+from setup_dialog import SetupDiag
 import resources  # noqa: E401
 import json
 
 
-class landingPage(QWidget):
+class LandingPage(QWidget):
     mission_ready = pyqtSignal(dict)
     config_ready = pyqtSignal(str)
 
@@ -71,19 +71,19 @@ class landingPage(QWidget):
         self.setLayout(main_layout)
 
     def open_new_msn_diag(self, config=None):
-        # # DEBUG
-        # config = json.loads("{\"date\": \"22/03/1993\", \"dl\": \"420\", \"mnemonic\": \"XXA\", \"systems\": [\"QQA\", \"QQB\", \"BQS\", \"ZZT\", \"LOL\", \"WTF\"], \"events\": [\"Checked in\", \"Checked out\", \"Saw activity\", \"Did its job\", \"Made everyone proud\", \"Broke something\", \"Saw a bird\", \"Saw a plane\", \"Got blocked\", \"Made a fast escape\"], \"applets\": [\"direction\"]}")
-        # self.mission_ready.emit(config)
-        # return
-        # # DEBUG
-        msn_setup_diag = setupDiag(True, config, self)
+        # DEBUG
+        config = json.loads("{\"date\": \"22/03/1993\", \"dl\": \"420\", \"mnemonic\": \"XXA\", \"systems\": [\"QQA\", \"QQB\", \"BQS\", \"ZZT\", \"LOL\", \"WTF\"], \"events\": [\"Checked in\", \"Checked out\", \"Saw activity\", \"Did its job\", \"Made everyone proud\", \"Broke something\", \"Saw a bird\", \"Saw a plane\", \"Got blocked\", \"Made a fast escape\"], \"applets\": [\"direction\"]}")
+        self.mission_ready.emit(config)
+        return
+        # DEBUG
+        msn_setup_diag = SetupDiag(True, config, self)
         if msn_setup_diag.exec():
             config = msn_setup_diag.get_config()
             del msn_setup_diag
             self.mission_ready.emit(config)
 
     def open_new_cfg_diag(self, config=None):
-        cfg_setup_diag = setupDiag(False, config, self)
+        cfg_setup_diag = SetupDiag(False, config, self)
         if cfg_setup_diag.exec():
             config = cfg_setup_diag.get_config_file()
             del cfg_setup_diag

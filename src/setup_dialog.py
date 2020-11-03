@@ -13,13 +13,13 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import (
     pyqtSlot,
 )
-from infoPage import infoPage
-from sysPage import sysPage
-from eventsPage import eventsPage
+from info_page import InfoPage
+from systems_page import SysPage
+from events_page import EventsPage
 import json
 
 
-class setupDiag(QDialog):
+class SetupDiag(QDialog):
     def __init__(self, is_mission, config, parent):
         super().__init__(parent)
         self.is_mission = is_mission
@@ -49,9 +49,9 @@ class setupDiag(QDialog):
         # Setup frame objects
         self.multi_page = QStackedWidget()
         self.main_layout = QVBoxLayout()
-        self.info_page = infoPage(self.is_mission)
-        self.systems_page = sysPage()
-        self.events_page = eventsPage()
+        self.info_page = InfoPage(self.is_mission)
+        self.systems_page = SysPage()
+        self.events_page = EventsPage()
         self.multi_page.currentChanged.connect(self.page_changed)
         self.info_page.info_valid.connect(self.enable_next)
         self.systems_page.systems_valid.connect(self.enable_next)

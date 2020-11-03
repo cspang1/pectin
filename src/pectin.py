@@ -4,9 +4,8 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QMessageBox
 )
-from missionPage import missionPage
-from landingPage import landingPage
-from dirApplet import test
+from mission_page import MissionPage
+from landing_page import LandingPage
 
 
 class pectin(QMainWindow):
@@ -14,17 +13,15 @@ class pectin(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Pectin")
-        self.landing_page = landingPage()
+        self.landing_page = LandingPage()
         self.landing_page.mission_ready.connect(self.setup_mission)
         self.landing_page.config_ready.connect(self.save_config)
         self.setWindowIcon(QIcon(":/icons/pectin.png"))
         self.setCentralWidget(self.landing_page)
-        tester = test()
-        tester.exec()
 
     @pyqtSlot(dict)
     def setup_mission(self, config):
-        self.mission_page = missionPage()
+        self.mission_page = MissionPage()
         self.mission_page.load_mission(config)
         self.setCentralWidget(self.mission_page)
 

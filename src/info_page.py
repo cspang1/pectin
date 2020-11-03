@@ -27,7 +27,7 @@ import os
 import json
 
 
-class baseFrame(QFrame):
+class BaseFrame(QFrame):
     field_valid = pyqtSignal(bool)
 
     def __init__(self, parent=None):
@@ -37,7 +37,7 @@ class baseFrame(QFrame):
         self.layout.setAlignment(Qt.AlignCenter)
 
 
-class timeFrame(baseFrame):
+class TimeFrame(BaseFrame):
     time_hacked = pyqtSignal()
 
     def __init__(self, is_mission, parent=None):
@@ -109,7 +109,7 @@ class timeFrame(baseFrame):
         self.time_edit.setTime(self.time)
 
 
-class dateFrame(baseFrame):
+class DateFrame(BaseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         date_label = QLabel("Date:")
@@ -121,7 +121,7 @@ class dateFrame(baseFrame):
         self.setLayout(self.layout)
 
 
-class dlFrame(baseFrame):
+class DlFrame(BaseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         dl_label = QLabel("DL-")
@@ -132,7 +132,7 @@ class dlFrame(baseFrame):
         self.setLayout(self.layout)
 
 
-class mnemonicFrame(baseFrame):
+class MnemonicFrame(BaseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         mnem_label = QLabel("Mnemonic:")
@@ -223,7 +223,7 @@ class mnemonicFrame(baseFrame):
             mnem_list.write(default)
 
 
-class cfgFrame(baseFrame):
+class CfgFrame(BaseFrame):
     info_loaded = pyqtSignal(QDate, str, str)
     systems_loaded = pyqtSignal(list)
     events_loaded = pyqtSignal(list)
@@ -287,18 +287,18 @@ class cfgFrame(baseFrame):
         self.applets_loaded.emit(applets)
 
 
-class infoPage(QWidget):
+class InfoPage(QWidget):
     info_valid = pyqtSignal(int, bool)
 
     def __init__(self, is_mission, parent=None):
         super().__init__(parent)
         self.is_mission = is_mission
 
-        self.time_setup = timeFrame(self.is_mission)
-        self.date_setup = dateFrame()
-        self.dl_setup = dlFrame()
-        self.mnem_setup = mnemonicFrame()
-        self.cfg_setup = cfgFrame()
+        self.time_setup = TimeFrame(self.is_mission)
+        self.date_setup = DateFrame()
+        self.dl_setup = DlFrame()
+        self.mnem_setup = MnemonicFrame()
+        self.cfg_setup = CfgFrame()
 
         # Setup frame signals/slots
         self.time_setup.time_hacked.connect(self.validate)

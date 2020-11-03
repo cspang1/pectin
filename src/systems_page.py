@@ -16,7 +16,7 @@ from PyQt5.QtCore import (
 import resources  # noqa: E401
 
 
-class sysPage(QWidget):
+class SysPage(QWidget):
     systems_valid = pyqtSignal(int, bool)
 
     def __init__(self, parent=None):
