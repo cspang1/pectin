@@ -1,4 +1,8 @@
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import (
+    QTime,
+    QTimer,
+    pyqtSlot
+)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QMainWindow,
@@ -19,10 +23,10 @@ class pectin(QMainWindow):
         self.setWindowIcon(QIcon(":/icons/pectin.png"))
         self.setCentralWidget(self.landing_page)
 
-    @pyqtSlot(dict)
-    def setup_mission(self, config):
+    @pyqtSlot(dict, QTimer, QTime)
+    def setup_mission(self, config, timer, time):
         self.mission_page = MissionPage()
-        self.mission_page.load_mission(config)
+        self.mission_page.load_mission(config, timer, time)
         self.setCentralWidget(self.mission_page)
 
     @pyqtSlot(str)

@@ -160,5 +160,8 @@ class SetupDiag(QDialog):
         config['applets'] = ["direction"]
         return config
 
+    def get_timing(self):
+        return self.info_page.get_timing()
+
     def get_config_file(self):
         return self.new_config

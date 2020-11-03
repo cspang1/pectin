@@ -338,3 +338,6 @@ class InfoPage(QWidget):
             self.info_valid.emit(0, dl_valid and mnem_valid)
         else:
             self.info_valid.emit(0, time_valid and dl_valid and mnem_valid)
+
+    def get_timing(self):
+        return (self.time_setup.hack_timer, self.time_setup.time)

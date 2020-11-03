@@ -1,3 +1,4 @@
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import (
     QHBoxLayout,
     QPushButton,
@@ -20,7 +21,6 @@ class LogButton(QPushButton):
 class MissionPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-
         self.main_layout = QVBoxLayout()
         self.interactive_layout = QHBoxLayout()
         self.sys_layout = QVBoxLayout()
@@ -36,7 +36,7 @@ class MissionPage(QWidget):
 
         self.setLayout(self.main_layout)
 
-    def load_mission(self, config):
+    def load_mission(self, config, timer, time):
         for system in config['systems']:
             temp_btn = LogButton(system, LogSource.SYSTEM)
             temp_btn.setSizePolicy(
@@ -54,6 +54,9 @@ class MissionPage(QWidget):
             temp_btn.clicked.connect(self.log_event)
             self.event_layout.addWidget(temp_btn)
         self.interactive_layout.addWidget(self.compass)
+        self.timer = timer
+        self.timer.timeout.connect(self.inc_time)
+        self.time = time
 
     def log_event(self, angle=None):
         src = self.sender()
@@ -67,3 +70,7 @@ class MissionPage(QWidget):
                 self.log_area.insertPlainText(src.text())
         elif type(src) is Compass:
             self.log_area.insertPlainText(Angle.to_string(angle))
+
+    @pyqtSlot()
+    def inc_time(self):
+        self.time = self.time.addSecs(1)
