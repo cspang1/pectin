@@ -83,7 +83,7 @@ class Compass(QWidget):
         self.span = self.offset + 525
         self.center = QPoint(self.span/2, self.span/2)
         self.setMinimumSize(self.span, self.span)
-        # self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.setMouseTracking(True)
         self.setEnabled(False)
 

@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
-    QPushButton,
+    QFrame, QHBoxLayout, QPushButton,
     QSizePolicy, QSplitter,
     QTextEdit,
     QVBoxLayout,
@@ -15,6 +16,7 @@ class LogButton(QPushButton):
     def __init__(self, text, source, parent=None):
         super().__init__(text, parent)
         self.source = source
+        self.setFont(QFont("Consolas", 18, 3))
 
 
 class ActionsWidget(QWidget):
@@ -41,13 +43,25 @@ class MissionPage(QWidget):
         self.systems = ActionsWidget(LogSource.SYSTEM)
         self.events = ActionsWidget(LogSource.EVENT)
         self.compass = Compass()
+        self.compass_widget = QWidget()
+        compass_layout = QHBoxLayout()
+        self.compass_widget.setLayout(compass_layout)
+        compass_layout.addWidget(self.compass)
         self.compass.angle_event.connect(self.log_event)
-        actions_splitter = QSplitter(Qt.Horizontal)
+        actions_splitter = QSplitter(
+            Qt.Horizontal,
+            frameShape=QFrame.StyledPanel,
+            frameShadow=QFrame.Plain
+        )
         actions_splitter.addWidget(self.systems)
         actions_splitter.addWidget(self.events)
-        actions_splitter.addWidget(self.compass)
+        actions_splitter.addWidget(self.compass_widget)
         actions_splitter.setChildrenCollapsible(False)
-        main_splitter = QSplitter(Qt.Vertical)
+        main_splitter = QSplitter(
+            Qt.Vertical,
+            frameShape=QFrame.StyledPanel,
+            frameShadow=QFrame.Plain
+        )
         self.log_area = QTextEdit()
         self.log_area.setAcceptRichText(True)
         main_splitter.addWidget(actions_splitter)
