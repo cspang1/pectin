@@ -1,8 +1,7 @@
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtWidgets import (
-    QHBoxLayout,
     QPushButton,
-    QSizePolicy,
+    QSizePolicy, QSplitter,
     QTextEdit,
     QVBoxLayout,
     QWidget
@@ -18,42 +17,50 @@ class LogButton(QPushButton):
         self.source = source
 
 
+class ActionsWidget(QWidget):
+    def __init__(self, source, parent=None):
+        super().__init__(parent)
+        self.source = source
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
+
+    def addAction(self, action):
+        temp_btn = LogButton(action, self.source)
+        temp_btn.setSizePolicy(
+            QSizePolicy.Preferred,
+            QSizePolicy.Minimum
+        )
+        self.main_layout.addWidget(temp_btn)
+        return temp_btn
+
+
 class MissionPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.main_layout = QVBoxLayout()
-        self.interactive_layout = QHBoxLayout()
-        self.sys_layout = QVBoxLayout()
-        self.event_layout = QVBoxLayout()
-        self.interactive_layout.addLayout(self.sys_layout)
-        self.interactive_layout.addLayout(self.event_layout)
+        main_layout = QVBoxLayout()
+        self.systems = ActionsWidget(LogSource.SYSTEM)
+        self.events = ActionsWidget(LogSource.EVENT)
         self.compass = Compass()
         self.compass.angle_event.connect(self.log_event)
+        actions_splitter = QSplitter(Qt.Horizontal)
+        actions_splitter.addWidget(self.systems)
+        actions_splitter.addWidget(self.events)
+        actions_splitter.addWidget(self.compass)
+        actions_splitter.setChildrenCollapsible(False)
+        main_splitter = QSplitter(Qt.Vertical)
         self.log_area = QTextEdit()
         self.log_area.setAcceptRichText(True)
-        self.main_layout.addLayout(self.interactive_layout)
-        self.main_layout.addWidget(self.log_area)
-
-        self.setLayout(self.main_layout)
+        main_splitter.addWidget(actions_splitter)
+        main_splitter.addWidget(self.log_area)
+        main_splitter.setChildrenCollapsible(False)
+        main_layout.addWidget(main_splitter)
+        self.setLayout(main_layout)
 
     def load_mission(self, config, timer, time):
         for system in config['systems']:
-            temp_btn = LogButton(system, LogSource.SYSTEM)
-            temp_btn.setSizePolicy(
-                QSizePolicy.Preferred,
-                QSizePolicy.Minimum
-            )
-            temp_btn.clicked.connect(self.log_event)
-            self.sys_layout.addWidget(temp_btn)
+            self.systems.addAction(system).clicked.connect(self.log_event)
         for event in config['events']:
-            temp_btn = LogButton(event, LogSource.EVENT)
-            temp_btn.setSizePolicy(
-                QSizePolicy.Preferred,
-                QSizePolicy.Minimum
-            )
-            temp_btn.clicked.connect(self.log_event)
-            self.event_layout.addWidget(temp_btn)
-        self.interactive_layout.addWidget(self.compass)
+            self.events.addAction(event).clicked.connect(self.log_event)
         self.timer = timer
         self.timer.timeout.connect(self.inc_time)
         self.time = time

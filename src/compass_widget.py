@@ -79,12 +79,12 @@ class Compass(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.span = 600
         self.offset = 75
+        self.span = self.offset + 525
         self.center = QPoint(self.span/2, self.span/2)
-        self.setFixedSize(self.span, self.span)
+        self.setMinimumSize(self.span, self.span)
+        # self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.setMouseTracking(True)
-        # self.set_enabled(False)
         self.setEnabled(False)
 
         self.wedges = []
