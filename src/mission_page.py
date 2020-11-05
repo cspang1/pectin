@@ -10,13 +10,14 @@ from PyQt5.QtWidgets import (
 from compass_widget import Compass
 from log_sources import LogSource
 from angles import Angle
+import resources
 
 
 class LogButton(QPushButton):
     def __init__(self, text, source, parent=None):
         super().__init__(text, parent)
         self.source = source
-        self.setFont(QFont("Consolas", 18, 3))
+        self.setFont(QFont("Consolas", 24, 3))
 
 
 class ActionsWidget(QWidget):
@@ -69,6 +70,18 @@ class MissionPage(QWidget):
         main_splitter.setChildrenCollapsible(False)
         main_layout.addWidget(main_splitter)
         self.setLayout(main_layout)
+
+        handle_css = """
+            QSplitter::handle {
+                background-image: url(:/img/dot_pattern.png);
+                background-repeat: repeat-xy;
+                border: 1px solid gray
+            }
+        """
+
+        # actions_splitter.setHandleWidth(32)
+        actions_splitter.setStyleSheet(handle_css)
+        main_splitter.setStyleSheet(handle_css)
 
     def load_mission(self, config, timer, time):
         for system in config['systems']:
