@@ -9,5 +9,6 @@
         <file>icons/pectin.png</file>
         <file>icons/setup.png</file>
         <file>imgs/dot_pattern.png</file>
+        <file>imgs/pressed.png</file>
     </qresource>
 </RCC>

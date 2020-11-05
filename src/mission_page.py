@@ -73,9 +73,13 @@ class MissionPage(QWidget):
 
         handle_css = """
             QSplitter::handle {
-                background-image: url(:/img/dot_pattern.png);
+                background-image: url(:/imgs/dot_pattern.png);
                 background-repeat: repeat-xy;
-                border: 1px solid gray
+                background-color: none;
+                border: 1px solid gray;
+            }
+            QSplitter::handle:pressed {
+                background-image: url(:/imgs/pressed.png);
             }
         """
 
