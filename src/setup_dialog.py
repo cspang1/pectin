@@ -14,9 +14,10 @@ from PyQt5.QtCore import (
     pyqtSlot,
 )
 from info_page import InfoPage
-from systems_page import SysPage
-from events_page import EventsPage
+from actions_page import ActionsPage
 import json
+
+from log_sources import LogSource
 
 
 class SetupDiag(QDialog):
@@ -54,12 +55,12 @@ class SetupDiag(QDialog):
         self.main_layout = QVBoxLayout()
         self.bottom_area = QHBoxLayout()
         self.info_page = InfoPage(self.is_mission)
-        self.systems_page = SysPage()
-        self.events_page = EventsPage()
+        self.systems_page = ActionsPage(LogSource.SYSTEM)
+        self.events_page = ActionsPage(LogSource.EVENT)
         self.multi_page.currentChanged.connect(self.page_changed)
         self.info_page.info_valid.connect(self.enable_next)
-        self.systems_page.systems_valid.connect(self.enable_next)
-        self.events_page.events_valid.connect(self.enable_next)
+        self.systems_page.actions_valid.connect(self.enable_next)
+        self.events_page.actions_valid.connect(self.enable_next)
         self.info_page.cfg_setup.systems_loaded.connect(
             self.systems_page.load_from_file
         )
@@ -157,12 +158,12 @@ class SetupDiag(QDialog):
         config['dl'] = info.dl_setup.dl_edit.text()
         config['mnemonic'] = info.mnem_setup.mnem_select.currentText()
         system_list = []
-        for index in range(systems.system_list.count()):
-            system_list.append(systems.system_list.item(index).text())
+        for index in range(systems.action_list.count()):
+            system_list.append(systems.action_list.item(index).text())
         config['systems'] = system_list
         events_list = []
-        for index in range(events.event_list.count()):
-            events_list.append(events.event_list.item(index).text())
+        for index in range(events.action_list.count()):
+            events_list.append(events.action_list.item(index).text())
         config['events'] = events_list
         config['applets'] = ["direction"]
         return config
