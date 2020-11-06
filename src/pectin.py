@@ -53,10 +53,6 @@ class pectin(QMainWindow):
         file_menu.addAction(exit_act)
 
     @pyqtSlot()
-    def verify_quit(self):
-        pass
-
-    @pyqtSlot()
     def open_prefs(self):
         prefs = PrefsPage()
         prefs.apply.connect(self.apply_prefs)
@@ -69,6 +65,7 @@ class pectin(QMainWindow):
         self.mission_page.load_mission(config, timer, time)
         self.timeout_set.connect(self.mission_page.set_timeout)
         self.dark_mode_set.connect(self.mission_page.compass.set_dark_mode)
+        self.dark_mode_set.connect(self.mission_page.set_dark_mode)
         self.setCentralWidget(self.mission_page)
 
     @pyqtSlot(str)
@@ -121,3 +118,17 @@ class pectin(QMainWindow):
         self.prefs.endGroup()
         self.dark_mode_set.emit(dark_mode)
         self.timeout_set.emit(timeout)
+
+    @pyqtSlot()
+    def verify_quit(self):
+        if hasattr(self, 'mission_page'):
+            quit_prompt = QMessageBox.question(
+                        self,
+                        "Really quit?",
+                        "You currently have a mission in progress. Are you sure you want to quit?"
+                    )
+
+            if quit_prompt == QMessageBox.Yes:
+                QApplication.quit()
+        else:
+            QApplication.quit()

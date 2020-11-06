@@ -1,5 +1,5 @@
 from PyQt5.QtCore import (
-    QState,
+    QSize, QState,
     QStateMachine, QTimer,
     Qt,
     pyqtSignal,
@@ -8,8 +8,8 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
-    QFrame, QHBoxLayout, QPushButton,
-    QSizePolicy, QSplitter,
+    QFrame, QHBoxLayout, QLabel, QLayout, QPushButton,
+    QSizePolicy, QSplitter, QTableWidget, QTableWidgetItem,
     QTextEdit,
     QVBoxLayout,
     QWidget
@@ -96,9 +96,11 @@ class MissionPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.record = -1
         prefs = QSettings()
         prefs.beginGroup("/General")
         timeout = prefs.value("/Timeout")
+        dark_mode = prefs.value("/DarkMode")
         prefs.endGroup()
 
         # Instantiate core objects
@@ -116,6 +118,26 @@ class MissionPage(QWidget):
         self.compass_widget.setLayout(compass_layout)
         compass_layout.addWidget(self.compass)
         self.compass.angle_event.connect(self.log_event)
+
+        header_layout = QHBoxLayout()
+        self.zulu_time = QLabel()
+        self.assessor = QLabel()
+        self.date = QLabel()
+        self.dl = QLabel()
+        self.mnemonic = QLabel()
+        header_layout.addWidget(self.zulu_time)
+        header_layout.addWidget(self.assessor)
+        header_layout.addWidget(self.date)
+        header_layout.addWidget(self.dl)
+        header_layout.addWidget(self.mnemonic)
+        font = QFont("Consolas", 16, 2)
+        for index in range(header_layout.count()):
+            widget = header_layout.itemAt(index).widget()
+            widget.setSizePolicy(
+                QSizePolicy.Preferred, QSizePolicy.Maximum
+            )
+            widget.setFont(font)
+            widget.setAlignment(Qt.AlignCenter)
 
         # Setup logging state machine
         self.init_log_sm()
@@ -135,8 +157,12 @@ class MissionPage(QWidget):
             frameShape=QFrame.StyledPanel,
             frameShadow=QFrame.Plain
         )
-        self.log_area = QTextEdit()
-        self.log_area.setAcceptRichText(True)
+        self.log_area = QTableWidget(0, 3)
+        self.log_area.setHorizontalHeaderLabels(
+            ["Time", "System", "Events"]
+        )
+        self.log_area.horizontalHeader().setStretchLastSection(True)
+        self.set_dark_mode(dark_mode)
         main_splitter.addWidget(actions_splitter)
         main_splitter.addWidget(self.log_area)
         main_splitter.setChildrenCollapsible(False)
@@ -156,6 +182,7 @@ class MissionPage(QWidget):
 
         # Finalize layout
         main_layout = QVBoxLayout()
+        main_layout.addLayout(header_layout)
         main_layout.addWidget(main_splitter)
         self.setLayout(main_layout)
 
@@ -166,11 +193,45 @@ class MissionPage(QWidget):
         src = self.sender()
         if type(src) is ActionsWidget:
             if src.source is LogSource.SYSTEM:
-                print("System: ", src.get_action(data))
+                self.record = self.record + 1
+                event_time = self.time.toString("HH:mm:ss")
+                system = src.get_action(data)
+                self.log_area.insertRow(self.record)
+                self.log_area.setItem(
+                    self.record,
+                    0,
+                    QTableWidgetItem(event_time)
+                )
+                self.log_area.setItem(
+                    self.record,
+                    1,
+                    QTableWidgetItem(system)
+                )
+                self.log_area.setItem(
+                    self.record,
+                    2,
+                    QTableWidgetItem("")
+                )
             if src.source is LogSource.EVENT:
-                print("Event: ", src.get_action(data))
+                event = src.get_action(data)
+                current = self.log_area.item(self.record, 2).text()
+                if len(current) > 0:
+                    current = current + "; "
+                current = current + event
+                self.log_area.setItem(
+                    self.record,
+                    2,
+                    QTableWidgetItem(current)
+                )
         elif type(src) is Compass:
-            self.log_area.insertPlainText(Angle.to_string(data))
+            angle = Angle.to_string(data)
+            current = self.log_area.item(self.record, 2).text()
+            current = current + angle
+            self.log_area.setItem(
+                self.record,
+                2,
+                QTableWidgetItem(current)
+            )
 
     def load_mission(self, config, timer, time):
         for system in config['systems']:
@@ -180,10 +241,17 @@ class MissionPage(QWidget):
         self.timer = timer
         self.timer.timeout.connect(self.inc_time)
         self.time = time
+        self.assessor.setText("Assessor: " + config['assessor'])
+        self.date.setText("Date: " + config['date'])
+        self.dl.setText("Mission: DL-" + config['dl'])
+        self.mnemonic.setText("Mnemonic: " + config['mnemonic'])
 
     @pyqtSlot()
     def inc_time(self):
         self.time = self.time.addSecs(1)
+        self.zulu_time.setText(
+            "Time: {} ZULU".format(self.time.toString("HH:mm:ss"))
+        )
 
     def init_log_sm(self):
         self.log_state = QStateMachine()
@@ -221,9 +289,15 @@ class MissionPage(QWidget):
         pre_system.entered.connect(self.systems.switch_active)
         pre_event.entered.connect(self.events.switch_active)
         post_event.exited.connect(self.compass.clear_state)
-        pre_event.entered.connect(lambda: print('wtf'))
         self.log_state.setRunning(True)
 
     @pyqtSlot(int)
     def set_timeout(self, timeout):
         self.timeout_timer.setInterval(timeout * 1000)
+
+    @pyqtSlot(int)
+    def set_dark_mode(self, enable):
+        if enable:
+            self.log_area.setStyleSheet("QTableWidget::item { color: white }")
+        else:
+            self.log_area.setStyleSheet("QTableWidget::item { color: none }")

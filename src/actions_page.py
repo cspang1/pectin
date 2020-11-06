@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QWidget
 )
 from PyQt5.QtCore import (
-    pyqtSignal,
+    QSettings, pyqtSignal,
     pyqtSlot
 )
 from log_sources import LogSource
@@ -29,7 +29,14 @@ class ActionsPage(QWidget):
         info_layout = QGridLayout()
         sys_btn_layout = QVBoxLayout()
 
-        self.action_list.setStyleSheet("QListWidget::item {color: white;}")
+        prefs = QSettings()
+        prefs.beginGroup("/General")
+        dark_mode = prefs.value("/DarkMode")
+        prefs.endGroup()
+        if dark_mode:
+            self.action_list.setStyleSheet("QListWidget::item {color: white;}")
+        else:
+            self.action_list.setStyleSheet("QListWidget::item {color: none;}")
         self.up_btn = QPushButton(QIcon(":/icons/up.png"), "")
         self.add_btn = QPushButton(QIcon(":/icons/add.png"), "")
         self.rem_btn = QPushButton(QIcon(":/icons/remove.png"), "")

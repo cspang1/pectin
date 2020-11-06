@@ -152,6 +152,7 @@ class SetupDiag(QDialog):
         info = self.info_page
         systems = self.systems_page
         events = self.events_page
+        config['assessor'] = info.name_setup.name_edit.text()
         config['date'] = info.date_setup.date_edit.date().toString(
             "dd/MM/yyyy"
         )
