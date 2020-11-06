@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QGridLayout,
     QHBoxLayout,
-    QSizePolicy,
+    QSizePolicy, QTextEdit,
     QTimeEdit,
     QLabel,
     QFrame,
@@ -107,6 +107,17 @@ class TimeFrame(BaseFrame):
     def inc_time(self):
         self.time = self.time.addSecs(1)
         self.time_edit.setTime(self.time)
+
+
+class NameFrame(BaseFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        name_label = QLabel("Assessor:")
+        self.name_edit = QLineEdit()
+        self.name_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.layout.addWidget(name_label)
+        self.layout.addWidget(self.name_edit)
+        self.setLayout(self.layout)
 
 
 class DateFrame(BaseFrame):
@@ -224,7 +235,7 @@ class MnemonicFrame(BaseFrame):
 
 
 class CfgFrame(BaseFrame):
-    info_loaded = pyqtSignal(QDate, str, str)
+    info_loaded = pyqtSignal(str, QDate, str, str)
     systems_loaded = pyqtSignal(list)
     events_loaded = pyqtSignal(list)
     applets_loaded = pyqtSignal(list)
@@ -274,6 +285,7 @@ class CfgFrame(BaseFrame):
                 return
 
         # Extract data
+        name = config['assessor']
         date = QDate.fromString(config['date'], "dd/MM/yyyy")
         dl = config['dl']
         mnemonic = config['mnemonic']
@@ -281,7 +293,7 @@ class CfgFrame(BaseFrame):
         events = config['events']
         applets = config['applets']
 
-        self.info_loaded.emit(date, dl, mnemonic)
+        self.info_loaded.emit(name, date, dl, mnemonic)
         self.systems_loaded.emit(systems)
         self.events_loaded.emit(events)
         self.applets_loaded.emit(applets)
@@ -295,12 +307,14 @@ class InfoPage(QWidget):
         self.is_mission = is_mission
 
         self.time_setup = TimeFrame(self.is_mission)
+        self.name_setup = NameFrame()
         self.date_setup = DateFrame()
         self.dl_setup = DlFrame()
         self.mnem_setup = MnemonicFrame()
         self.cfg_setup = CfgFrame()
 
         # Setup frame signals/slots
+        self.name_setup.name_edit.textEdited.connect(self.validate)
         self.time_setup.time_hacked.connect(self.validate)
         self.dl_setup.dl_edit.textEdited.connect(self.validate)
         self.mnem_setup.mnem_select.activated.connect(self.validate)
@@ -308,8 +322,9 @@ class InfoPage(QWidget):
 
         # Populate dialog; Row 1
         info_layout = QGridLayout()
-        info_layout.addWidget(self.time_setup, 0, 0, 1, 4)
-        info_layout.addWidget(self.date_setup, 0, 4, 1, 2)
+        info_layout.addWidget(self.time_setup, 0, 0, 1, 3)
+        info_layout.addWidget(self.name_setup, 0, 3, 1, 2)
+        info_layout.addWidget(self.date_setup, 0, 5, 1, 1)
 
         # Row 2
         info_layout.addWidget(self.dl_setup, 1, 0, 1, 2)
@@ -318,8 +333,9 @@ class InfoPage(QWidget):
 
         self.setLayout(info_layout)
 
-    @pyqtSlot(QDate, str, str)
-    def load_from_file(self, date, dl, mnemonic):
+    @pyqtSlot(str, QDate, str, str)
+    def load_from_file(self, name, date, dl, mnemonic):
+        self.name_setup.name_edit.setText(name)
         self.date_setup.date_edit.setDate(date)
         self.dl_setup.dl_edit.setText(dl)
         self.mnem_setup.mnem_select.setCurrentText(mnemonic)
@@ -330,14 +346,19 @@ class InfoPage(QWidget):
 
     @pyqtSlot()
     def validate(self):
+        name_valid = len(str.strip(self.name_setup.name_edit.text())) > 0
         time_valid = self.time_setup.hack_timer.isActive()
         dl_valid = len(str.strip(self.dl_setup.dl_edit.text())) > 0
         mnem_valid = self.mnem_setup.mnem_select.currentIndex() >= 0
 
         if not self.is_mission:
-            self.info_valid.emit(0, dl_valid and mnem_valid)
+            self.info_valid.emit(
+                0, dl_valid and mnem_valid
+            )
         else:
-            self.info_valid.emit(0, time_valid and dl_valid and mnem_valid)
+            self.info_valid.emit(
+                0, name_valid and time_valid and dl_valid and mnem_valid
+            )
 
     def get_timing(self):
         return (self.time_setup.hack_timer, self.time_setup.time)

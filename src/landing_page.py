@@ -17,7 +17,6 @@ from PyQt5.QtCore import (
 )
 from setup_dialog import SetupDiag
 import resources  # noqa: E401
-import json
 
 
 class LandingPage(QWidget):
@@ -71,11 +70,6 @@ class LandingPage(QWidget):
         self.setLayout(main_layout)
 
     def open_new_msn_diag(self, config=None):
-        # # DEBUG
-        # config = json.loads("{\"date\": \"22/03/1993\", \"dl\": \"420\", \"mnemonic\": \"XXA\", \"systems\": [\"QQA\", \"QQB\", \"BQS\", \"ZZT\", \"LOL\", \"WTF\"], \"events\": [\"Checked in\", \"Checked out\", \"Saw activity\", \"Did its job\", \"Made everyone proud\", \"Broke something\", \"Saw a bird\", \"Saw a plane\", \"Got blocked\", \"Made a fast escape\"], \"applets\": [\"direction\"]}")
-        # self.mission_ready.emit(config, QTimer(), QTime())
-        # return
-        # # DEBUG
         msn_setup_diag = SetupDiag(True, config, self)
         if msn_setup_diag.exec():
             config = msn_setup_diag.get_config()
