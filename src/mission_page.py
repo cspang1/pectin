@@ -1,6 +1,6 @@
 from PyQt5.QtCore import (
     QState,
-    QStateMachine,
+    QStateMachine, QTimer,
     Qt,
     pyqtSignal,
     pyqtSlot
@@ -95,6 +95,10 @@ class MissionPage(QWidget):
         super().__init__(parent)
 
         # Instantiate core objects
+        self.timeout_timer = QTimer()
+        self.timeout_timer.setTimerType(Qt.VeryCoarseTimer)
+        self.timeout_timer.setInterval(5000)  # This will be set via setting
+        self.timeout_timer.setSingleShot(True)
         self.systems = ActionsWidget(LogSource.SYSTEM)
         self.systems.acted.connect(self.log_event)
         self.events = ActionsWidget(LogSource.EVENT)
@@ -153,6 +157,7 @@ class MissionPage(QWidget):
     def log_event(self, data):
         if data is -1:
             return
+        self.timeout_timer.start()
         src = self.sender()
         if type(src) is ActionsWidget:
             if src.source is LogSource.SYSTEM:
@@ -192,6 +197,9 @@ class MissionPage(QWidget):
         pre_system.addTransition(
             self.systems.acted, pre_event
         )
+        pre_system.addTransition(self.timeout_timer.timeout, pre_system)
+        pre_event.addTransition(self.timeout_timer.timeout, pre_system)
+        post_event.addTransition(self.timeout_timer.timeout, pre_system)
         pre_event.addTransition(
             self.systems.acted, pre_event
         )
@@ -205,6 +213,7 @@ class MissionPage(QWidget):
             self.events.acted, post_event
         )
         pre_system.entered.connect(self.events.switch_active)
+        pre_system.entered.connect(self.systems.switch_active)
         pre_event.entered.connect(self.events.switch_active)
         post_event.exited.connect(self.compass.clear_state)
         self.log_state.setRunning(True)
