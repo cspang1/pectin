@@ -8,10 +8,10 @@ from PyQt5.QtWidgets import (
     QLayout,
     QPushButton,
     QStackedWidget,
-    QVBoxLayout,
+    QVBoxLayout
 )
 from PyQt5.QtCore import (
-    pyqtSlot,
+    pyqtSlot
 )
 from info_page import InfoPage
 from actions_page import ActionsPage

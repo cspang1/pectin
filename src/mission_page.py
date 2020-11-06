@@ -3,6 +3,7 @@ from PyQt5.QtCore import (
     QStateMachine, QTimer,
     Qt,
     pyqtSignal,
+    QSettings,
     pyqtSlot
 )
 from PyQt5.QtGui import QFont
@@ -95,10 +96,15 @@ class MissionPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        prefs = QSettings()
+        prefs.beginGroup("/General")
+        timeout = prefs.value("/Timeout")
+        prefs.endGroup()
+
         # Instantiate core objects
         self.timeout_timer = QTimer()
         self.timeout_timer.setTimerType(Qt.VeryCoarseTimer)
-        self.timeout_timer.setInterval(5000)  # This will be set via setting
+        self.timeout_timer.setInterval(timeout * 1000)
         self.timeout_timer.setSingleShot(True)
         self.systems = ActionsWidget(LogSource.SYSTEM)
         self.systems.acted.connect(self.log_event)
@@ -217,3 +223,7 @@ class MissionPage(QWidget):
         post_event.exited.connect(self.compass.clear_state)
         pre_event.entered.connect(lambda: print('wtf'))
         self.log_state.setRunning(True)
+
+    @pyqtSlot(int)
+    def set_timeout(self, timeout):
+        self.timeout_timer.setInterval(timeout * 1000)

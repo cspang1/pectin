@@ -1,12 +1,12 @@
 from PyQt5.QtCore import (
     QCoreApplication, QSettings, QTime,
-    QTimer, pyqtSignal,
+    QTimer, Qt, pyqtSignal,
     pyqtSlot
 )
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QColor, QIcon, QPalette
 from PyQt5.QtWidgets import (
-    QAction, QMainWindow,
-    QMessageBox, qApp
+    QAction, QApplication, QMainWindow,
+    QMessageBox
 )
 from mission_page import MissionPage
 from landing_page import LandingPage
@@ -67,6 +67,8 @@ class pectin(QMainWindow):
     def setup_mission(self, config, timer, time):
         self.mission_page = MissionPage()
         self.mission_page.load_mission(config, timer, time)
+        self.timeout_set.connect(self.mission_page.set_timeout)
+        self.dark_mode_set.connect(self.mission_page.compass.set_dark_mode)
         self.setCentralWidget(self.mission_page)
 
     @pyqtSlot(str)
@@ -92,10 +94,25 @@ class pectin(QMainWindow):
 
     @pyqtSlot(int)
     def set_dark_mode(self, enabled):
+        app = QApplication.instance()
         if enabled:
+            palette = QPalette()
             self.menu_bar.setStyleSheet("QMenu::item {color: white}")
+            palette.setColor(QPalette.Window, QColor(53, 53, 53))
+            palette.setColor(QPalette.WindowText, Qt.white)
+            palette.setColor(QPalette.Base, QColor(25, 25, 25))
+            palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+            palette.setColor(QPalette.ToolTipBase, Qt.black)
+            palette.setColor(QPalette.ToolTipText, Qt.white)
+            palette.setColor(QPalette.Button, QColor(53, 53, 53))
+            palette.setColor(QPalette.BrightText, Qt.red)
+            palette.setColor(QPalette.Link, QColor(42, 130, 218))
+            palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+            palette.setColor(QPalette.HighlightedText, Qt.black)
+            app.setPalette(palette)
         else:
             self.menu_bar.setStyleSheet("QMenu::item {color: none}")
+            app.setPalette(app.style().standardPalette())
 
     def init_prefs(self):
         self.prefs.beginGroup("/General")

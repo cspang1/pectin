@@ -20,7 +20,8 @@ from PyQt5.QtCore import (
     QTimer,
     Qt,
     pyqtSignal,
-    pyqtSlot
+    pyqtSlot,
+    QSettings
 )
 from pathlib import Path
 import os
@@ -152,7 +153,14 @@ class MnemonicFrame(BaseFrame):
         super().__init__(parent)
         self.label.setText("Mnemonic:")
         self.mnem_select = QComboBox()
-        self.mnem_select.setStyleSheet("QListView {color: white;}")
+        prefs = QSettings()
+        prefs.beginGroup("/General")
+        dark_mode = prefs.value("/DarkMode")
+        prefs.endGroup()
+        if dark_mode:
+            self.mnem_select.setStyleSheet("QListView {color: white;}")
+        else:
+            self.mnem_select.setStyleSheet("QListView {color: none;}")
         self.mnem_select.setSizePolicy(
             QSizePolicy.Expanding,
             QSizePolicy.Fixed
