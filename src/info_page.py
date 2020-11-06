@@ -152,6 +152,7 @@ class MnemonicFrame(BaseFrame):
         super().__init__(parent)
         self.label.setText("Mnemonic:")
         self.mnem_select = QComboBox()
+        self.mnem_select.setStyleSheet("QListView {color: white;}")
         self.mnem_select.setSizePolicy(
             QSizePolicy.Expanding,
             QSizePolicy.Fixed
