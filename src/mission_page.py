@@ -73,8 +73,11 @@ class ActionsWidget(QWidget):
     def get_action(self, index):
         return self.main_layout.itemAt(index).widget().text()
 
+    @pyqtSlot(int)
+    @pyqtSlot()
     def switch_active(self, target=None):
         if target is None:
+            target = -1
             for index in range(self.main_layout.count()):
                 self.main_layout.itemAt(index).widget().activate(False)
         for index in range(self.main_layout.count()):
@@ -145,6 +148,20 @@ class MissionPage(QWidget):
         main_layout.addWidget(main_splitter)
         self.setLayout(main_layout)
 
+    @pyqtSlot(Angle)
+    @pyqtSlot(int)
+    def log_event(self, data):
+        if data is -1:
+            return
+        src = self.sender()
+        if type(src) is ActionsWidget:
+            if src.source is LogSource.SYSTEM:
+                print("System: ", src.get_action(data))
+            if src.source is LogSource.EVENT:
+                print("Event: ", src.get_action(data))
+        elif type(src) is Compass:
+            self.log_area.insertPlainText(Angle.to_string(data))
+
     def load_mission(self, config, timer, time):
         for system in config['systems']:
             self.systems.add_action(system)
@@ -153,21 +170,6 @@ class MissionPage(QWidget):
         self.timer = timer
         self.timer.timeout.connect(self.inc_time)
         self.time = time
-
-    def log_event(self, data=None):
-        src = self.sender()
-        if type(src) is LogButton:
-            if src.source is LogSource.EVENT:
-                self.compass.setEnabled(True)
-                self.log_area.insertPlainText(" " + src.text())
-            elif src.source is LogSource.SYSTEM:
-                self.compass.setEnabled(False)
-                self.log_area.insertPlainText(
-                    "\n" + self.time.toString("HH:mm:ss") + " | "
-                )
-                self.log_area.insertPlainText(src.text())
-        elif type(src) is Compass:
-            self.log_area.insertPlainText(Angle.to_string(data))
 
     @pyqtSlot()
     def inc_time(self):
