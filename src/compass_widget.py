@@ -43,6 +43,7 @@ class CompassWedge(QWidget):
         self.offset = w_offset
         self.active = False
         self.id = id
+        self.marked = False
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -53,6 +54,8 @@ class CompassWedge(QWidget):
             brush = QBrush(QColor(Qt.lightGray))
         elif self.active:
             brush = QBrush(QColor(Qt.red))
+        elif self.marked:
+            brush = QBrush(QColor(Qt.green))
         else:
             brush = QBrush(QColor(Qt.white))
         pen = QPen(Qt.black)
@@ -73,6 +76,10 @@ class CompassWedge(QWidget):
         self.active = is_active
         self.update()
 
+    def mark(self, marked):
+        self.marked = marked
+        self.update()
+
 
 class Compass(QWidget):
     angle_event = pyqtSignal(Angle)
@@ -85,7 +92,6 @@ class Compass(QWidget):
         self.setMinimumSize(self.span, self.span)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.setMouseTracking(True)
-        self.setEnabled(False)
 
         self.wedges = []
         for start in range(0, 360 * 16, 45 * 16):
@@ -174,7 +180,12 @@ class Compass(QWidget):
         for wedge in self.wedges:
             if wedge.active:
                 self.angle_event.emit(wedge.id)
+                wedge.mark(True)
 
     def activate_wedge(self, active):
         for index in range(self.wedges.__len__()):
             self.wedges[index].activate(True if index == active else False)
+
+    def clear_state(self):
+        for wedge in self.wedges:
+            wedge.mark(False)
