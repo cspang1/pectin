@@ -35,6 +35,10 @@ class BaseFrame(QFrame):
         self.setFrameStyle(QFrame.Panel)
         self.layout = QHBoxLayout()
         self.layout.setAlignment(Qt.AlignCenter)
+        self.label = QLabel()
+
+    def set_required(self):
+        self.label.setText("<font color=\"red\">*</font> " + self.label.text())
 
 
 class TimeFrame(BaseFrame):
@@ -44,7 +48,7 @@ class TimeFrame(BaseFrame):
         super().__init__(parent)
 
         # Setup frame
-        time_label = QLabel("Time:")
+        self.label.setText("Time:")
         zulu_label = QLabel("ZULU")
         zulu_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self.time_edit = QTimeEdit()
@@ -63,7 +67,7 @@ class TimeFrame(BaseFrame):
             self.hack_btn.setEnabled(False)
             self.sys_time_btn.setEnabled(False)
 
-        self.layout.addWidget(time_label)
+        self.layout.addWidget(self.label)
         self.layout.addWidget(self.time_edit)
         self.layout.addWidget(zulu_label)
         self.layout.addWidget(self.hack_btn)
@@ -112,10 +116,10 @@ class TimeFrame(BaseFrame):
 class NameFrame(BaseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
-        name_label = QLabel("Assessor:")
+        self.label.setText("Assessor:")
         self.name_edit = QLineEdit()
         self.name_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.layout.addWidget(name_label)
+        self.layout.addWidget(self.label)
         self.layout.addWidget(self.name_edit)
         self.setLayout(self.layout)
 
@@ -123,11 +127,11 @@ class NameFrame(BaseFrame):
 class DateFrame(BaseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
-        date_label = QLabel("Date:")
+        self.label.setText("Date:")
         self.date_edit = QDateEdit(QDate.currentDate())
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.layout.addWidget(date_label)
+        self.layout.addWidget(self.label)
         self.layout.addWidget(self.date_edit)
         self.setLayout(self.layout)
 
@@ -135,10 +139,10 @@ class DateFrame(BaseFrame):
 class DlFrame(BaseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
-        dl_label = QLabel("DL-")
+        self.label.setText("DL-")
         self.dl_edit = QLineEdit()
         self.dl_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.layout.addWidget(dl_label)
+        self.layout.addWidget(self.label)
         self.layout.addWidget(self.dl_edit)
         self.setLayout(self.layout)
 
@@ -146,13 +150,13 @@ class DlFrame(BaseFrame):
 class MnemonicFrame(BaseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
-        mnem_label = QLabel("Mnemonic:")
+        self.label.setText("Mnemonic:")
         self.mnem_select = QComboBox()
         self.mnem_select.setSizePolicy(
             QSizePolicy.Expanding,
             QSizePolicy.Fixed
         )
-        self.layout.addWidget(mnem_label)
+        self.layout.addWidget(self.label)
         self.layout.addWidget(self.mnem_select)
         self.setLayout(self.layout)
 
@@ -243,13 +247,13 @@ class CfgFrame(BaseFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.cfg = None
-        cfg_label = QLabel("Config:")
+        self.label.setText("Config:")
         self.path_edit = QLineEdit()
         self.path_edit.setEnabled(False)
         self.browse_btn = QPushButton("Browse...")
         self.browse_btn.setAutoDefault(False)
         self.browse_btn.clicked.connect(self.load_cfg)
-        self.layout.addWidget(cfg_label)
+        self.layout.addWidget(self.label)
         self.layout.addWidget(self.path_edit)
         self.layout.addWidget(self.browse_btn)
         self.setLayout(self.layout)
@@ -330,6 +334,14 @@ class InfoPage(QWidget):
         info_layout.addWidget(self.dl_setup, 1, 0, 1, 2)
         info_layout.addWidget(self.mnem_setup, 1, 2, 1, 2)
         info_layout.addWidget(self.cfg_setup, 1, 4, 1, 2)
+
+        # Set required
+        self.dl_setup.set_required()
+        self.mnem_setup.set_required()
+        self.date_setup.set_required()
+        if self.is_mission:
+            self.time_setup.set_required()
+            self.name_setup.set_required()
 
         self.setLayout(info_layout)
 

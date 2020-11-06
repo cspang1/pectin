@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
-    QInputDialog,
+    QInputDialog, QLabel,
     QListWidget,
     QListWidgetItem,
     QMessageBox,
@@ -41,10 +41,12 @@ class EventsPage(QWidget):
         event_btn_layout.addWidget(self.add_btn)
         event_btn_layout.addWidget(self.rem_btn)
         event_btn_layout.addWidget(self.down_btn)
+        field_title = QLabel("<font color=\"red\">*</font> Events:")
 
         self.event_list.itemClicked.connect(self.item_selected)
-        info_layout.addWidget(self.event_list, 0, 0, 4, 3)
-        info_layout.addLayout(event_btn_layout, 0, 3, 4, 1)
+        info_layout.addWidget(field_title, 0, 0, 1, -1)
+        info_layout.addWidget(self.event_list, 1, 0, 4, 3)
+        info_layout.addLayout(event_btn_layout, 1, 3, 4, 1)
         self.setLayout(info_layout)
 
     @pyqtSlot(list)

@@ -3,7 +3,7 @@ from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
+    QFileDialog, QHBoxLayout,
     QLabel,
     QLayout,
     QPushButton,
@@ -45,10 +45,14 @@ class SetupDiag(QDialog):
         self.button_box.addButton(self.back_btn, QDialogButtonBox.ActionRole)
         self.button_box.addButton(self.next_btn, QDialogButtonBox.ActionRole)
         self.button_box.addButton(self.cancel_btn, QDialogButtonBox.RejectRole)
+        reqd_text = QLabel(
+            "<font color=\"red\">*</font> indicates a required field"
+        )
 
         # Setup frame objects
         self.multi_page = QStackedWidget()
         self.main_layout = QVBoxLayout()
+        self.bottom_area = QHBoxLayout()
         self.info_page = InfoPage(self.is_mission)
         self.systems_page = SysPage()
         self.events_page = EventsPage()
@@ -63,15 +67,18 @@ class SetupDiag(QDialog):
             self.events_page.load_from_file
         )
         header_font = QFont("Consolas", 12, -1)
-        self.header = QLabel("Mission Info:")
+        self.header = QLabel()
         self.header.setFont(header_font)
         self.multi_page.addWidget(self.info_page)
         self.multi_page.addWidget(self.systems_page)
         self.multi_page.addWidget(self.events_page)
         self.main_layout.addWidget(self.header)
         self.main_layout.addWidget(self.multi_page)
-        self.main_layout.addWidget(self.button_box)
+        self.bottom_area.addWidget(reqd_text)
+        self.bottom_area.addWidget(self.button_box)
+        self.main_layout.addLayout(self.bottom_area)
         self.main_layout.setSizeConstraint(QLayout.SetFixedSize)
+        self.set_page_header()
 
         if config:
             self.info_page.preload_cfg(config)
@@ -119,11 +126,11 @@ class SetupDiag(QDialog):
 
     def set_page_header(self):
         if self.multi_page.currentIndex() == 0:
-            self.header.setText("Mission Info:")
+            self.header.setText("Mission Info")
         elif self.multi_page.currentIndex() == 1:
-            self.header.setText("Systems List:")
+            self.header.setText("Systems List")
         elif self.multi_page.currentIndex() == 2:
-            self.header.setText("Events List:")
+            self.header.setText("Events List")
 
     @pyqtSlot(int, bool)
     def enable_next(self, page, enable):
