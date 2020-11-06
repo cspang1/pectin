@@ -87,7 +87,8 @@ class ActionsWidget(QWidget):
             if cur.index == target:
                 cur.activate(True)
         self.active = target
-        self.acted.emit(self.active)
+        if target != -1:
+            self.acted.emit(self.active)
 
 
 class MissionPage(QWidget):
@@ -155,8 +156,6 @@ class MissionPage(QWidget):
     @pyqtSlot(Angle)
     @pyqtSlot(int)
     def log_event(self, data):
-        if data is -1:
-            return
         self.timeout_timer.start()
         src = self.sender()
         if type(src) is ActionsWidget:
@@ -216,4 +215,5 @@ class MissionPage(QWidget):
         pre_system.entered.connect(self.systems.switch_active)
         pre_event.entered.connect(self.events.switch_active)
         post_event.exited.connect(self.compass.clear_state)
+        pre_event.entered.connect(lambda: print('wtf'))
         self.log_state.setRunning(True)

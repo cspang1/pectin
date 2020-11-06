@@ -125,7 +125,7 @@ class ActionsPage(QWidget):
     def move_up(self):
         self.down_btn.setEnabled(True)
         cur_index = self.action_list.currentRow()
-        cur_item = self.saction_list.takeItem(cur_index)
+        cur_item = self.action_list.takeItem(cur_index)
         self.action_list.insertItem(cur_index - 1, cur_item)
         self.action_list.setCurrentRow(cur_index - 1)
         if self.action_list.currentRow() == 0:
