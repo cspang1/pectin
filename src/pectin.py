@@ -110,6 +110,15 @@ class pectin(QMainWindow):
         else:
             self.menu_bar.setStyleSheet("QMenu::item {color: none}")
             app.setPalette(app.style().standardPalette())
+        self.setStyleSheet("""
+            QMessageBox {
+                background-color: #333333;
+            }
+
+            QMessageBox QLabel {
+                color: #aaa;
+            }
+        """)
 
     def init_prefs(self):
         self.prefs.beginGroup("/General")
@@ -127,7 +136,6 @@ class pectin(QMainWindow):
                         "Really quit?",
                         "You currently have a mission in progress. Are you sure you want to quit?"
                     )
-
             if quit_prompt == QMessageBox.Yes:
                 QApplication.quit()
         else:
