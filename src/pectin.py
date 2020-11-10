@@ -20,13 +20,9 @@ class pectin(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Pectin")
-        self.landing_page = LandingPage()
-        self.setup_actions()
-
-        self.landing_page.mission_ready.connect(self.setup_mission)
-        self.landing_page.config_ready.connect(self.save_config)
         self.setWindowIcon(QIcon(":/icons/pectin.png"))
-        self.setCentralWidget(self.landing_page)
+        self.setup_actions()
+        self.set_landing_page()
 
         QCoreApplication.setOrganizationName("Connor Spangler")
         QCoreApplication.setOrganizationDomain("https://github.com/cspang1")
@@ -61,12 +57,13 @@ class pectin(QMainWindow):
 
     @pyqtSlot(dict, QTimer, QTime)
     def setup_mission(self, config, timer, time):
-        self.mission_page = MissionPage()
-        self.mission_page.load_mission(config, timer, time)
-        self.timeout_set.connect(self.mission_page.set_timeout)
-        self.dark_mode_set.connect(self.mission_page.compass.set_dark_mode)
-        self.dark_mode_set.connect(self.mission_page.set_dark_mode)
-        self.setCentralWidget(self.mission_page)
+        mission_page = MissionPage()
+        mission_page.load_mission(config, timer, time)
+        mission_page.mission_ended.connect(self.set_landing_page)
+        self.timeout_set.connect(mission_page.set_timeout)
+        self.dark_mode_set.connect(mission_page.compass.set_dark_mode)
+        self.dark_mode_set.connect(mission_page.set_dark_mode)
+        self.setCentralWidget(mission_page)
 
     @pyqtSlot(str)
     def save_config(self, config_file):
@@ -88,6 +85,13 @@ class pectin(QMainWindow):
 
         self.dark_mode_set.emit(dark_mode)
         self.timeout_set.emit(timeout)
+
+    @pyqtSlot()
+    def set_landing_page(self):
+        self.landing_page = LandingPage()
+        self.landing_page.mission_ready.connect(self.setup_mission)
+        self.landing_page.config_ready.connect(self.save_config)
+        self.setCentralWidget(self.landing_page)
 
     @pyqtSlot(int)
     def set_dark_mode(self, enabled):
