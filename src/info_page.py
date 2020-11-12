@@ -171,8 +171,6 @@ class MnemonicFrame(BaseFrame):
 
         self.mnem_list_path = Path(__file__).parents[1] / "res" / "mnemonics.json"
         os.makedirs(os.path.dirname(self.mnem_list_path), exist_ok=True)
-        if not self.mnem_list_path.exists():
-            self.mnem_list_path(self.mnem_list_path)
 
         self.cur_mnemonics = None
         self.load_mnemonics()
