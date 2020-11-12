@@ -25,6 +25,8 @@ from log_sources import LogSource
 from angles import Angle
 import resources  # noqa: E401
 import csv
+import os
+from pathlib import Path
 
 
 class LogButton(QPushButton):
@@ -211,6 +213,7 @@ class MissionPage(QWidget):
         src = self.sender()
         if type(src) is ActionsWidget:
             if src.source is LogSource.SYSTEM:
+                self.save_log(True)
                 self.record = self.record + 1
                 event_time = self.time.toString("HH:mm:ss")
                 system = src.get_action(data)
@@ -307,6 +310,7 @@ class MissionPage(QWidget):
         pre_event.addTransition(
             self.events.acted, post_event
         )
+        pre_system.entered.connect(lambda: self.save_log(True))
         pre_system.entered.connect(self.events.switch_active)
         pre_system.entered.connect(self.systems.switch_active)
         pre_event.entered.connect(self.events.switch_active)
@@ -321,18 +325,31 @@ class MissionPage(QWidget):
                     "If you choose to end this mission, the time hack will end and logging will stop. Really end?"
                 )
         if quit_prompt == QMessageBox.Yes:
-            self.save_log()
+            if self.save_log():
+                QMessageBox.information(
+                        self,
+                        "Mission Ended",
+                        "Mission has been ended and your logs have been saved."
+                    )
+                self.mission_ended.emit()
 
-    def save_log(self):
+    def save_log(self, temp=False):
         date = QDate.fromString(self.date, "dd/MM/yyyy").toString("yyyyMMdd")
         file_name = ("DL-{0} {1} {2}").format(
             self.dl,
             self.mnemonic,
             date
         )
-        path, _ = QFileDialog.getSaveFileName(
-                self, 'Save File', file_name, 'CSV(*.csv)'
+        path = None
+        if temp:
+            path = Path(__file__).parents[1] / "temp" / "{}.csv".format(
+                file_name
             )
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+        else:
+            path, _ = QFileDialog.getSaveFileName(
+                    self, 'Save File', file_name, 'CSV(*.csv)'
+                )
         if path:
             with open(path, 'w', newline='') as outfile:
                 writer = csv.writer(outfile)
@@ -347,12 +364,8 @@ class MissionPage(QWidget):
                         else:
                             rowdata.append('')
                     writer.writerow(rowdata)
-            QMessageBox.information(
-                    self,
-                    "Mission Ended",
-                    "Mission has been ended and your logs have been saved."
-                )
-            self.mission_ended.emit()
+            return True and not temp
+        return False
 
     """def load_log(self):
         path = QFileDialog.getOpenFileName(
