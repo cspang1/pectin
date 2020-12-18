@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget
 )
+from angle_widget import Angles
 from compass_widget import Compass
 from log_sources import LogSource
 from angles import Angle
@@ -123,12 +124,13 @@ class MissionPage(QWidget):
         self.systems.acted.connect(self.log_event)
         self.events = ActionsWidget(LogSource.EVENT)
         self.events.acted.connect(self.log_event)
-        self.compass = Compass()
+        # self.compass = Compass()
+        self.compass = Angles()
         self.compass_widget = QWidget()
         compass_layout = QHBoxLayout()
         self.compass_widget.setLayout(compass_layout)
         compass_layout.addWidget(self.compass)
-        self.compass.angle_event.connect(self.log_event)
+        # self.compass.angle_event.connect(self.log_event)
 
         header_layout = QHBoxLayout()
         self.zulu_time_label = QLabel()
@@ -314,7 +316,7 @@ class MissionPage(QWidget):
         pre_system.entered.connect(self.events.switch_active)
         pre_system.entered.connect(self.systems.switch_active)
         pre_event.entered.connect(self.events.switch_active)
-        post_event.exited.connect(self.compass.clear_state)
+        # post_event.exited.connect(self.compass.clear_state)
         self.log_state.setRunning(True)
 
     @pyqtSlot()
