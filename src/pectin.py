@@ -1,3 +1,4 @@
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import (
     QCoreApplication, QSettings, QTime,
     QTimer, Qt, pyqtSignal,
@@ -48,6 +49,10 @@ class pectin(QMainWindow):
         file_menu.addAction(open_prefs)
         file_menu.addAction(exit_act)
 
+    def closeEvent(self, event):
+        self.verify_quit()
+        event.ignore()
+
     @pyqtSlot()
     def open_prefs(self):
         prefs = PrefsPage()
@@ -57,13 +62,13 @@ class pectin(QMainWindow):
 
     @pyqtSlot(dict, QTimer, QTime)
     def setup_mission(self, config, timer, time):
-        mission_page = MissionPage()
-        mission_page.load_mission(config, timer, time)
-        mission_page.mission_ended.connect(self.set_landing_page)
-        self.timeout_set.connect(mission_page.set_timeout)
-        self.dark_mode_set.connect(mission_page.compass.set_dark_mode)
-        self.dark_mode_set.connect(mission_page.set_dark_mode)
-        self.setCentralWidget(mission_page)
+        self.mission_page = MissionPage()
+        self.mission_page.load_mission(config, timer, time)
+        self.mission_page.mission_ended.connect(self.set_landing_page)
+        self.timeout_set.connect(self.mission_page.set_timeout)
+        self.dark_mode_set.connect(self.mission_page.compass.set_dark_mode)
+        self.dark_mode_set.connect(self.mission_page.set_dark_mode)
+        self.setCentralWidget(self.mission_page)
 
     @pyqtSlot(str)
     def save_config(self, config_file):
@@ -88,6 +93,8 @@ class pectin(QMainWindow):
 
     @pyqtSlot()
     def set_landing_page(self):
+        if hasattr(self, 'mission_page'):
+            del self.mission_page
         self.landing_page = LandingPage()
         self.landing_page.mission_ready.connect(self.setup_mission)
         self.landing_page.config_ready.connect(self.save_config)
@@ -133,13 +140,13 @@ class pectin(QMainWindow):
         self.timeout_set.emit(timeout)
 
     @pyqtSlot()
-    def verify_quit(self):
+    def verify_quit(self, event=None):
         if hasattr(self, 'mission_page'):
             quit_prompt = QMessageBox.question(
-                        self,
-                        "Really quit?",
-                        "You currently have a mission in progress. Are you sure you want to quit?"
-                    )
+                self,
+                "Really quit?",
+                "You currently have a mission in progress. Are you sure you want to quit?"
+            )
             if quit_prompt == QMessageBox.Yes:
                 QApplication.quit()
         else:
