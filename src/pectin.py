@@ -1,3 +1,4 @@
+from PyQt5 import QtGui
 from PyQt5.QtCore import (
     QCoreApplication, QSettings, QTime,
     QTimer, Qt, pyqtSignal,
@@ -11,6 +12,7 @@ from PyQt5.QtWidgets import (
 from mission_page import MissionPage
 from landing_page import LandingPage
 from prefs_page import PrefsPage
+from pathlib import Path
 
 
 class pectin(QMainWindow):
@@ -23,13 +25,13 @@ class pectin(QMainWindow):
         self.setWindowIcon(QIcon(":/icons/pectin.png"))
         self.setup_actions()
         self.set_landing_page()
-
         QCoreApplication.setOrganizationName("Connor Spangler")
         QCoreApplication.setOrganizationDomain("https://github.com/cspang1")
         QCoreApplication.setApplicationName("Pectin")
         self.prefs = QSettings()
         self.dark_mode_set.connect(self.set_dark_mode)
         self.init_prefs()
+        self.recover_mission()
 
     def setup_actions(self):
         # Exit
@@ -52,6 +54,27 @@ class pectin(QMainWindow):
         self.verify_quit()
         event.ignore()
 
+    def recover_mission(self):
+        # Check mission was in progress
+        temp_path = Path(__file__).parents[1] / "temp"
+        log_files = [
+            file for file in temp_path.rglob("*.csv") if file.is_file()
+        ]
+        cfg_files = [
+            file for file in temp_path.rglob("*.cfg") if file.is_file()
+        ]
+        if log_files and cfg_files:
+            recover_prompt = QMessageBox.question(
+                    self,
+                    "Continue mission?",
+                    "A mission appears to not have been ended last time. Continue where you left off?"  # noqa: E501
+                )
+            if recover_prompt == QMessageBox.Yes:
+                self.landing_page.open_new_msn_diag(
+                    config=str(cfg_files[0]),
+                    recovered=str(log_files[0])
+                )
+
     @pyqtSlot()
     def open_prefs(self):
         prefs = PrefsPage()
@@ -59,12 +82,10 @@ class pectin(QMainWindow):
         if prefs.exec():
             self.apply_prefs(prefs.dark_mode, prefs.timeout)
 
-    # TODO
-    # Add optional recovered data parameter
-    @pyqtSlot(dict, QTimer, QTime)
-    def setup_mission(self, config, timer, time):
+    @pyqtSlot(dict, QTimer, QTime, str)
+    def setup_mission(self, config, timer, time, recovered=None):
         self.mission_page = MissionPage()
-        self.mission_page.load_mission(config, timer, time)
+        self.mission_page.load_mission(config, timer, time, recovered)
         self.mission_page.mission_ended.connect(self.set_landing_page)
         self.timeout_set.connect(self.mission_page.set_timeout)
         self.dark_mode_set.connect(self.mission_page.compass.set_dark_mode)
@@ -80,7 +101,7 @@ class pectin(QMainWindow):
         )
 
         if load_msn == QMessageBox.Yes:
-            self.landing_page.open_new_msn_diag(config_file)
+            self.landing_page.open_new_msn_diag(config=config_file)
 
     @pyqtSlot(int, int)
     def apply_prefs(self, dark_mode, timeout):

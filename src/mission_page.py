@@ -26,6 +26,7 @@ from angles import Angle
 import resources  # noqa: F401
 import csv
 import os
+import json
 from pathlib import Path
 
 
@@ -212,11 +213,8 @@ class MissionPage(QWidget):
         self.setLayout(main_layout)
 
     # TODO
-    # Add recovered data parameter and populate log_area from it
-    # Add .json file generation to temp folder containing key parameters:
-    #   |_ Name of config file used
-    #   |_ Time hack offset from system time
-    def load_mission(self, config, timer, time):
+    # Populate log_area from recovered data
+    def load_mission(self, config, timer, time, recovered=None):
         for system in config['systems']:
             self.systems.add_action(system)
         for event in config['events']:
@@ -238,10 +236,50 @@ class MissionPage(QWidget):
             self.mnemonic,
             date
         )
-        self.temp_path = Path(__file__).parents[1] / "temp" / "{}.csv".format(
+        temp_path = Path(__file__).parents[1] / "temp"
+        temp_cfg = temp_path / "{}.cfg".format(
             self.file_name
         )
-        os.makedirs(os.path.dirname(self.temp_path), exist_ok=True)
+        os.makedirs(os.path.dirname(temp_cfg), exist_ok=True)
+        self.temp_log = temp_path / "{}.csv".format(
+            self.file_name
+        )
+        os.makedirs(os.path.dirname(self.temp_log), exist_ok=True)
+        if temp_cfg:
+            with open(temp_cfg, 'w') as save_cfg_file:
+                save_cfg_file.write(json.dumps(config))
+        else:
+            QMessageBox(
+                QMessageBox.Critical,
+                "Error",
+                "Unable to load recovered config file: {}".format(temp_cfg),
+            ).exec()
+            return
+        if recovered:
+            self.recover_log(recovered)
+
+    def recover_log(self, log):
+        with open(log, 'r', newline='') as infile:
+            reader = csv.reader(infile, delimiter=',')
+            for row in reader:
+                self.record = self.record + 1
+                self.log_area.insertRow(self.record)
+                self.log_area.setItem(
+                    self.record,
+                    0,
+                    QTableWidgetItem(row[0])
+                )
+                self.log_area.setItem(
+                    self.record,
+                    1,
+                    QTableWidgetItem(row[1])
+                )
+                self.log_area.setItem(
+                    self.record,
+                    2,
+                    QTableWidgetItem(row[2])
+                )
+                self.log_area.scrollToBottom()
 
     @pyqtSlot()
     def inc_time(self):
@@ -355,9 +393,9 @@ class MissionPage(QWidget):
         if self.oob_update:
             append = False
             self.oob_update = False
-        if self.temp_path:
+        if self.temp_log:
             if append:
-                with open(self.temp_path, 'a', newline='') as outfile:
+                with open(self.temp_log, 'a', newline='') as outfile:
                     writer = csv.writer(outfile)
                     rowdata = []
                     row = self.log_area.rowCount() - 1
@@ -371,7 +409,7 @@ class MissionPage(QWidget):
                             rowdata.append('')
                     writer.writerow(rowdata)
             else:
-                with open(self.temp_path, 'w', newline='') as outfile:
+                with open(self.temp_log, 'w', newline='') as outfile:
                     writer = csv.writer(outfile)
                     for row in range(self.log_area.rowCount()):
                         rowdata = []

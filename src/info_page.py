@@ -119,41 +119,47 @@ class TimeFrame(BaseFrame):
 
 
 class NameFrame(BaseFrame):
-    def __init__(self, parent=None):
+    def __init__(self, recovered, parent=None):
         super().__init__(parent)
         self.label.setText("Assessor:")
         self.name_edit = QLineEdit()
         self.name_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        if recovered:
+            self.name_edit.setEnabled(False)
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.name_edit)
         self.setLayout(self.layout)
 
 
 class DateFrame(BaseFrame):
-    def __init__(self, parent=None):
+    def __init__(self, recovered, parent=None):
         super().__init__(parent)
         self.label.setText("Date:")
         self.date_edit = QDateEdit(QDate.currentDate())
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        if recovered:
+            self.date_edit.setEnabled(False)
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.date_edit)
         self.setLayout(self.layout)
 
 
 class DlFrame(BaseFrame):
-    def __init__(self, parent=None):
+    def __init__(self, recovered, parent=None):
         super().__init__(parent)
         self.label.setText("DL-")
         self.dl_edit = QLineEdit()
         self.dl_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        if recovered:
+            self.dl_edit.setEnabled(False)
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.dl_edit)
         self.setLayout(self.layout)
 
 
 class MnemonicFrame(BaseFrame):
-    def __init__(self, parent=None):
+    def __init__(self, recovered, parent=None):
         super().__init__(parent)
         self.label.setText("Mnemonic:")
         self.mnem_select = QComboBox()
@@ -169,6 +175,8 @@ class MnemonicFrame(BaseFrame):
             QSizePolicy.Expanding,
             QSizePolicy.Fixed
         )
+        if recovered:
+            self.mnem_select.setEnabled(False)
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.mnem_select)
         self.setLayout(self.layout)
@@ -255,7 +263,7 @@ class CfgFrame(BaseFrame):
     events_loaded = pyqtSignal(list)
     applets_loaded = pyqtSignal(list)
 
-    def __init__(self, parent=None):
+    def __init__(self, recovered, parent=None):
         super().__init__(parent)
         self.cfg = None
         self.label.setText("Config:")
@@ -264,6 +272,9 @@ class CfgFrame(BaseFrame):
         self.browse_btn = QPushButton("Browse...")
         self.browse_btn.setAutoDefault(False)
         self.browse_btn.clicked.connect(self.load_cfg)
+        if recovered:
+            self.path_edit.setEnabled(False)
+            self.browse_btn.setEnabled(False)
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.path_edit)
         self.layout.addWidget(self.browse_btn)
@@ -317,16 +328,16 @@ class CfgFrame(BaseFrame):
 class InfoPage(QWidget):
     info_valid = pyqtSignal(int, bool)
 
-    def __init__(self, is_mission, parent=None):
+    def __init__(self, is_mission, recovered, parent=None):
         super().__init__(parent)
         self.is_mission = is_mission
 
         self.time_setup = TimeFrame(self.is_mission)
-        self.name_setup = NameFrame()
-        self.date_setup = DateFrame()
-        self.dl_setup = DlFrame()
-        self.mnem_setup = MnemonicFrame()
-        self.cfg_setup = CfgFrame()
+        self.name_setup = NameFrame(recovered)
+        self.date_setup = DateFrame(recovered)
+        self.dl_setup = DlFrame(recovered)
+        self.mnem_setup = MnemonicFrame(recovered)
+        self.cfg_setup = CfgFrame(recovered)
 
         # Setup frame signals/slots
         self.name_setup.name_edit.textEdited.connect(self.validate)

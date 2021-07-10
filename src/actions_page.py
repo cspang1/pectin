@@ -20,7 +20,7 @@ import resources  # noqa: F401
 class ActionsPage(QWidget):
     actions_valid = pyqtSignal(int, bool)
 
-    def __init__(self, source, parent=None):
+    def __init__(self, source, recovered, parent=None):
         super().__init__(parent)
         self.source = source
         self.text = LogSource.get_text(self.source).title()
@@ -41,6 +41,8 @@ class ActionsPage(QWidget):
         self.add_btn = QPushButton(QIcon(":/icons/add.png"), "")
         self.rem_btn = QPushButton(QIcon(":/icons/remove.png"), "")
         self.down_btn = QPushButton(QIcon(":/icons/down.png"), "")
+        if recovered:
+            self.add_btn.setEnabled(False)
         self.rem_btn.setEnabled(False)
         self.up_btn.setEnabled(False)
         self.down_btn.setEnabled(False)
@@ -56,7 +58,8 @@ class ActionsPage(QWidget):
             "<font color=\"red\">*</font> " + self.text + ":"
         )
 
-        self.action_list.itemClicked.connect(self.item_selected)
+        if not recovered:
+            self.action_list.itemClicked.connect(self.item_selected)
         info_layout.addWidget(field_title, 0, 0, 1, -1)
         info_layout.addWidget(self.action_list, 1, 0, 4, 3)
         info_layout.addLayout(sys_btn_layout, 1, 3, 4, 1)

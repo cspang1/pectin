@@ -24,6 +24,7 @@ class SetupDiag(QDialog):
     def __init__(self, is_mission, config, parent):
         super().__init__(parent)
         self.is_mission = is_mission
+        recovered = True if config else False
         if not self.is_mission:
             self.setWindowTitle("Config Setup")
         else:
@@ -54,9 +55,9 @@ class SetupDiag(QDialog):
         self.multi_page = QStackedWidget()
         self.main_layout = QVBoxLayout()
         self.bottom_area = QHBoxLayout()
-        self.info_page = InfoPage(self.is_mission)
-        self.systems_page = ActionsPage(LogSource.SYSTEM)
-        self.events_page = ActionsPage(LogSource.EVENT)
+        self.info_page = InfoPage(self.is_mission, recovered)
+        self.systems_page = ActionsPage(LogSource.SYSTEM, recovered)
+        self.events_page = ActionsPage(LogSource.EVENT, recovered)
         self.multi_page.currentChanged.connect(self.page_changed)
         self.info_page.info_valid.connect(self.enable_next)
         self.systems_page.actions_valid.connect(self.enable_next)

@@ -5,7 +5,6 @@ from PyQt5.QtGui import (
 from PyQt5.QtWidgets import (
     QGridLayout,
     QLabel,
-    QMessageBox,
     QSizePolicy,
     QWidget,
     QPushButton,
@@ -20,11 +19,10 @@ from PyQt5.QtCore import (
 )
 from setup_dialog import SetupDiag
 import resources  # noqa: F401
-from pathlib import Path
 
 
 class LandingPage(QWidget):
-    mission_ready = pyqtSignal(dict, QTimer, QTime)
+    mission_ready = pyqtSignal(dict, QTimer, QTime, str)
     config_ready = pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -73,37 +71,13 @@ class LandingPage(QWidget):
         main_layout.addLayout(label_layout, 3, 0, 1, -1)
         self.setLayout(main_layout)
 
-        # Check mission was in progress
-        temp_path = Path(__file__).parents[1] / "temp"
-        files = [
-            file.name for file in temp_path.rglob("*.csv") if file.is_file()
-        ]
-        print(files)
-        if files:
-            recover_prompt = QMessageBox.question(
-                    self,
-                    "Continue mission?",
-                    "A mission appears to not have been ended last time. Continue where you left off?"  # noqa: E501
-                )
-        if recover_prompt == QMessageBox.Yes:
-            # TODO
-            # First open new dialog
-            #   |_ Show recovered mission details
-            #       |_ DL number
-            #       |_ Date
-            #       |_ Mnemonic
-            #       |_ Assessor
-            #   |_ Show time hack option w/ autocalculated from offset
-            # After clicking next, emit mission_ready w/ config, new timer, time, and recovered data  # noqa: E501
-            return
-
-    def open_new_msn_diag(self, config=None):
+    def open_new_msn_diag(self, config=None, recovered=None):
         msn_setup_diag = SetupDiag(True, config, self)
         if msn_setup_diag.exec():
             config = msn_setup_diag.get_config()
             timer, time = msn_setup_diag.get_timing()
             del msn_setup_diag
-            self.mission_ready.emit(config, timer, time)
+            self.mission_ready.emit(config, timer, time, recovered)
 
     def open_new_cfg_diag(self, config=None):
         cfg_setup_diag = SetupDiag(False, config, self)
