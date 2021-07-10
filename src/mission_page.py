@@ -212,8 +212,6 @@ class MissionPage(QWidget):
         main_layout.addWidget(main_splitter)
         self.setLayout(main_layout)
 
-    # TODO
-    # Populate log_area from recovered data
     def load_mission(self, config, timer, time, recovered=None):
         for system in config['systems']:
             self.systems.add_action(system)
@@ -231,19 +229,11 @@ class MissionPage(QWidget):
         self.mnemonic = config['mnemonic']
         self.mnemonic_label.setText("Mnemonic: " + self.mnemonic)
         date = QDate.fromString(self.date, "dd/MM/yyyy").toString("yyyyMMdd")
-        self.file_name = ("DL-{0} {1} {2}").format(
-            self.dl,
-            self.mnemonic,
-            date
-        )
+        self.file_name = f"DL-{self.dl} {self.mnemonic} {date}"
         temp_path = Path(__file__).parents[1] / "temp"
-        temp_cfg = temp_path / "{}.cfg".format(
-            self.file_name
-        )
+        temp_cfg = temp_path / f"{self.file_name}.cfg"
         os.makedirs(os.path.dirname(temp_cfg), exist_ok=True)
-        self.temp_log = temp_path / "{}.csv".format(
-            self.file_name
-        )
+        self.temp_log = temp_path / "{self.file_name}.csv"
         os.makedirs(os.path.dirname(self.temp_log), exist_ok=True)
         if temp_cfg:
             with open(temp_cfg, 'w') as save_cfg_file:
@@ -252,7 +242,7 @@ class MissionPage(QWidget):
             QMessageBox(
                 QMessageBox.Critical,
                 "Error",
-                "Unable to load recovered config file: {}".format(temp_cfg),
+                f"Unable to load recovered config file: {temp_cfg}"
             ).exec()
             return
         if recovered:

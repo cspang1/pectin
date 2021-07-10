@@ -1,4 +1,3 @@
-from PyQt5 import QtGui
 from PyQt5.QtCore import (
     QCoreApplication, QSettings, QTime,
     QTimer, Qt, pyqtSignal,
@@ -74,6 +73,22 @@ class pectin(QMainWindow):
                     config=str(cfg_files[0]),
                     recovered=str(log_files[0])
                 )
+            else:
+                purge_prompt = QMessageBox.question(
+                    self,
+                    "Clear recovered logs?",
+                    "Would you like to clear the recovered log cache?"
+                )
+                if purge_prompt == QMessageBox.Yes:
+                    try:
+                        for file in log_files + cfg_files:
+                            file.unlink()
+                    except OSError as e:
+                        QMessageBox.critical(
+                            self,
+                            "Error",
+                            f"Error encountered attempting to delete recovery files: { e.strerror }"  # noqa: E501
+                        )
 
     @pyqtSlot()
     def open_prefs(self):

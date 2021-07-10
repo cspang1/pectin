@@ -306,7 +306,7 @@ class CfgFrame(BaseFrame):
                 QMessageBox(
                     QMessageBox.Critical,
                     "Error",
-                    "Unable to load config file: {}".format(e),
+                    f"Unable to load config file: {e}"
                 ).exec()
                 return
 
