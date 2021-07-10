@@ -1,7 +1,9 @@
 from PyQt5.QtCore import (
     QPoint,
     QSize,
-    Qt, pyqtSignal, pyqtSlot
+    Qt,
+    pyqtSignal,
+    pyqtSlot
 )
 from PyQt5.QtGui import (
     QBrush,

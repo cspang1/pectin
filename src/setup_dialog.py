@@ -1,18 +1,20 @@
 
-from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtGui import (
+    QFont,
+    QIcon
+)
 from PyQt5.QtWidgets import (
     QDialog,
     QDialogButtonBox,
-    QFileDialog, QHBoxLayout,
+    QFileDialog,
+    QHBoxLayout,
     QLabel,
     QLayout,
     QPushButton,
     QStackedWidget,
     QVBoxLayout
 )
-from PyQt5.QtCore import (
-    pyqtSlot
-)
+from PyQt5.QtCore import pyqtSlot
 from info_page import InfoPage
 from actions_page import ActionsPage
 import json

@@ -1,11 +1,21 @@
 from PyQt5.QtCore import (
-    QCoreApplication, QSettings, QTime,
-    QTimer, Qt, pyqtSignal,
+    QCoreApplication,
+    QSettings,
+    QTime,
+    QTimer,
+    Qt,
+    pyqtSignal,
     pyqtSlot
 )
-from PyQt5.QtGui import QColor, QIcon, QPalette
+from PyQt5.QtGui import (
+    QColor,
+    QIcon,
+    QPalette
+)
 from PyQt5.QtWidgets import (
-    QAction, QApplication, QMainWindow,
+    QAction,
+    QApplication,
+    QMainWindow,
     QMessageBox
 )
 from mission_page import MissionPage

@@ -1,5 +1,6 @@
 from PyQt5.QtCore import (
-    QDate, QState,
+    QDate,
+    QState,
     QStateMachine,
     QTimer,
     Qt,
@@ -9,9 +10,12 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
-    QFileDialog, QFrame, QGridLayout,
+    QFileDialog,
+    QFrame,
+    QGridLayout,
     QHBoxLayout,
-    QLabel, QMessageBox,
+    QLabel,
+    QMessageBox,
     QPushButton,
     QSizePolicy,
     QSplitter,
@@ -233,7 +237,7 @@ class MissionPage(QWidget):
         temp_path = Path(__file__).parents[1] / "temp"
         temp_cfg = temp_path / f"{self.file_name}.cfg"
         os.makedirs(os.path.dirname(temp_cfg), exist_ok=True)
-        self.temp_log = temp_path / "{self.file_name}.csv"
+        self.temp_log = temp_path / f"{self.file_name}.csv"
         os.makedirs(os.path.dirname(self.temp_log), exist_ok=True)
         if temp_cfg:
             with open(temp_cfg, 'w') as save_cfg_file:
@@ -434,21 +438,6 @@ class MissionPage(QWidget):
             return True
         return False
 
-    # def load_log(self):
-    #     path = QFileDialog.getOpenFileName(
-    #             self, 'Open File', '', 'CSV(*.csv)')
-    #     if not path.isEmpty():
-    #         with open(bytes(path), 'rb') as stream:
-    #             self.log_area.setRowCount(0)
-    #             self.log_area.setColumnCount(0)
-    #             for rowdata in csv.reader(stream):
-    #                 row = self.log_area.rowCount()
-    #                 self.log_area.insertRow(row)
-    #                 self.log_area.setColumnCount(len(rowdata))
-    #                 for column, data in enumerate(rowdata):
-    #                     item = QTableWidgetItem(data.decode('utf8'))
-    #                     self.log_area.setItem(row, column, item)
-
     @pyqtSlot()
     def end_mission(self):
         quit_prompt = QMessageBox.question(
@@ -463,6 +452,23 @@ class MissionPage(QWidget):
                         "Mission Ended",
                         "Mission has been ended and your logs have been saved."
                     )
+                temp_path = Path(__file__).parents[1] / "temp"
+                log_files = [
+                    file for file in temp_path.rglob("*.csv") if file.is_file()
+                ]
+                cfg_files = [
+                    file for file in temp_path.rglob("*.cfg") if file.is_file()
+                ]
+                if log_files and cfg_files:
+                    try:
+                        for file in log_files + cfg_files:
+                            file.unlink()
+                    except OSError as e:
+                        QMessageBox.critical(
+                            self,
+                            "Error",
+                            f"Error encountered attempting to delete temp files: { e.strerror }"  # noqa: E501
+                        )
                 self.mission_ended.emit()
 
     @pyqtSlot(int)

@@ -1,12 +1,18 @@
 from PyQt5.QtWidgets import (
-    QCheckBox, QDialog,
+    QCheckBox,
+    QDialog,
     QFormLayout,
-    QDialogButtonBox, QHBoxLayout,
+    QDialogButtonBox,
+    QHBoxLayout,
     QLabel,
     QSpinBox,
     QLayout
 )
-from PyQt5.QtCore import QSettings, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import (
+    QSettings,
+    pyqtSignal,
+    pyqtSlot
+)
 
 
 class PrefsPage(QDialog):
