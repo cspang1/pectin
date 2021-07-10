@@ -1,4 +1,3 @@
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import (
     QCoreApplication, QSettings, QTime,
     QTimer, Qt, pyqtSignal,
@@ -75,7 +74,7 @@ class pectin(QMainWindow):
         load_msn = QMessageBox.question(
             self,
             "Config Created",
-            "New configuration successfully created. Would you like to load it into a new mission?"
+            "New configuration successfully created. Would you like to load it into a new mission?"  # noqa: E501
         )
 
         if load_msn == QMessageBox.Yes:
@@ -145,7 +144,7 @@ class pectin(QMainWindow):
             quit_prompt = QMessageBox.question(
                 self,
                 "Really quit?",
-                "You currently have a mission in progress. Are you sure you want to quit? The mission log will NOT be saved; click \"no\" and use the \"END MISSION\" button instead if this is not your intention."
+                "You currently have a mission in progress. Are you sure you want to quit? The mission log will NOT be saved; click \"no\" and use the \"END MISSION\" button instead if this is not your intention."  # noqa: E501
             )
             if quit_prompt == QMessageBox.Yes:
                 QApplication.quit()

@@ -23,7 +23,7 @@ from PyQt5.QtWidgets import (
 from compass_widget import Compass
 from log_sources import LogSource
 from angles import Angle
-import resources  # noqa: E401
+import resources  # noqa: F401
 import csv
 import os
 from pathlib import Path
@@ -108,6 +108,8 @@ class MissionPage(QWidget):
         super().__init__(parent)
 
         self.record = -1
+        self.inspected = None
+        self.oob_update = False
         prefs = QSettings()
         prefs.beginGroup("/General")
         timeout = prefs.value("/Timeout")
@@ -119,6 +121,7 @@ class MissionPage(QWidget):
         self.timeout_timer.setTimerType(Qt.VeryCoarseTimer)
         self.timeout_timer.setInterval(timeout * 1000)
         self.timeout_timer.setSingleShot(True)
+        self.timeout_timer.timeout.connect(self.update_temp_log)
         self.systems = ActionsWidget(LogSource.SYSTEM)
         self.systems.acted.connect(self.log_event)
         self.events = ActionsWidget(LogSource.EVENT)
@@ -168,6 +171,8 @@ class MissionPage(QWidget):
             frameShadow=QFrame.Plain
         )
         self.log_area = QTableWidget(0, 3)
+        self.log_area.cellDoubleClicked.connect(self.entry_inspected)
+        self.log_area.cellChanged.connect(self.entry_changed)
         self.log_area.setHorizontalHeaderLabels(
             ["Time", "System", "Events"]
         )
@@ -206,54 +211,6 @@ class MissionPage(QWidget):
         main_layout.addWidget(main_splitter)
         self.setLayout(main_layout)
 
-    @pyqtSlot(Angle)
-    @pyqtSlot(int)
-    def log_event(self, data):
-        self.timeout_timer.start()
-        src = self.sender()
-        if type(src) is ActionsWidget:
-            if src.source is LogSource.SYSTEM:
-                self.save_log(True)
-                self.record = self.record + 1
-                event_time = self.time.toString("HH:mm:ss")
-                system = src.get_action(data)
-                self.log_area.insertRow(self.record)
-                self.log_area.setItem(
-                    self.record,
-                    0,
-                    QTableWidgetItem(event_time)
-                )
-                self.log_area.setItem(
-                    self.record,
-                    1,
-                    QTableWidgetItem(system)
-                )
-                self.log_area.setItem(
-                    self.record,
-                    2,
-                    QTableWidgetItem("")
-                )
-            if src.source is LogSource.EVENT:
-                event = src.get_action(data)
-                current = self.log_area.item(self.record, 2).text()
-                if len(current) > 0:
-                    current = current + "; "
-                current = current + event
-                self.log_area.setItem(
-                    self.record,
-                    2,
-                    QTableWidgetItem(current)
-                )
-        elif type(src) is Compass:
-            angle = Angle.to_string(data)
-            current = self.log_area.item(self.record, 2).text()
-            current = current + angle
-            self.log_area.setItem(
-                self.record,
-                2,
-                QTableWidgetItem(current)
-            )
-
     def load_mission(self, config, timer, time):
         for system in config['systems']:
             self.systems.add_action(system)
@@ -270,6 +227,17 @@ class MissionPage(QWidget):
         self.dl_label.setText("Mission: DL-" + self.dl)
         self.mnemonic = config['mnemonic']
         self.mnemonic_label.setText("Mnemonic: " + self.mnemonic)
+        date = QDate.fromString(self.date, "dd/MM/yyyy").toString("yyyyMMdd")
+        self.file_name = ("DL-{0} {1} {2}").format(
+            self.dl,
+            self.mnemonic,
+            date
+        )
+        self.temp_path = Path(__file__).parents[1] / "temp" / "{}.csv".format(
+            self.file_name
+        )
+        os.makedirs(os.path.dirname(self.temp_path), exist_ok=True)
+        # self.load_log()
 
     @pyqtSlot()
     def inc_time(self):
@@ -310,46 +278,113 @@ class MissionPage(QWidget):
         pre_event.addTransition(
             self.events.acted, post_event
         )
-        pre_system.entered.connect(lambda: self.save_log(True))
         pre_system.entered.connect(self.events.switch_active)
         pre_system.entered.connect(self.systems.switch_active)
         pre_event.entered.connect(self.events.switch_active)
         post_event.exited.connect(self.compass.clear_state)
         self.log_state.setRunning(True)
 
-    @pyqtSlot()
-    def end_mission(self):
-        quit_prompt = QMessageBox.question(
-                    self,
-                    "End mission?",
-                    "If you choose to end this mission, the time hack will end and logging will stop. Really end?"
+    @pyqtSlot(Angle)
+    @pyqtSlot(int)
+    def log_event(self, data):
+        last_unlogged = self.timeout_timer.isActive()
+        self.timeout_timer.start()
+        src = self.sender()
+        if type(src) is ActionsWidget:
+            if src.source is LogSource.SYSTEM:
+                if last_unlogged:
+                    self.update_temp_log()
+                self.record = self.record + 1
+                event_time = self.time.toString("HH:mm:ss")
+                system = src.get_action(data)
+                self.log_area.insertRow(self.record)
+                self.log_area.setItem(
+                    self.record,
+                    0,
+                    QTableWidgetItem(event_time)
                 )
-        if quit_prompt == QMessageBox.Yes:
-            if self.save_log():
-                QMessageBox.information(
-                        self,
-                        "Mission Ended",
-                        "Mission has been ended and your logs have been saved."
-                    )
-                self.mission_ended.emit()
-
-    def save_log(self, temp=False):
-        date = QDate.fromString(self.date, "dd/MM/yyyy").toString("yyyyMMdd")
-        file_name = ("DL-{0} {1} {2}").format(
-            self.dl,
-            self.mnemonic,
-            date
-        )
-        path = None
-        if temp:
-            path = Path(__file__).parents[1] / "temp" / "{}.csv".format(
-                file_name
+                self.log_area.setItem(
+                    self.record,
+                    1,
+                    QTableWidgetItem(system)
+                )
+                self.log_area.setItem(
+                    self.record,
+                    2,
+                    QTableWidgetItem("")
+                )
+                self.log_area.scrollToBottom()
+            if src.source is LogSource.EVENT:
+                event = src.get_action(data)
+                current = self.log_area.item(self.record, 2).text()
+                if len(current) > 0:
+                    current = current + "; "
+                current = current + event
+                self.log_area.setItem(
+                    self.record,
+                    2,
+                    QTableWidgetItem(current)
+                )
+        elif type(src) is Compass:
+            angle = Angle.to_string(data)
+            current = self.log_area.item(self.record, 2).text()
+            current = current + angle
+            self.log_area.setItem(
+                self.record,
+                2,
+                QTableWidgetItem(current)
             )
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-        else:
-            path, _ = QFileDialog.getSaveFileName(
-                    self, 'Save File', file_name, 'CSV(*.csv)'
-                )
+
+    @pyqtSlot(int, int)
+    def entry_inspected(self, row, col):
+        self.inspected = row, col
+
+    @pyqtSlot(int, int)
+    def entry_changed(self, row, col):
+        if (row, col) == self.inspected:
+            if not self.timeout_timer.isActive():
+                self.update_temp_log(False)
+            elif row == self.record - 1:
+                self.oob_update = True
+
+    def update_temp_log(self, append=True):
+        if self.oob_update:
+            append = False
+            self.oob_update = False
+        if self.temp_path:
+            if append:
+                with open(self.temp_path, 'a', newline='') as outfile:
+                    writer = csv.writer(outfile)
+                    rowdata = []
+                    row = self.log_area.rowCount() - 1
+                    for column in range(self.log_area.columnCount()):
+                        item = self.log_area.item(row, column)
+                        if item is not None:
+                            rowdata.append(
+                                item.text()
+                            )
+                        else:
+                            rowdata.append('')
+                    writer.writerow(rowdata)
+            else:
+                with open(self.temp_path, 'w', newline='') as outfile:
+                    writer = csv.writer(outfile)
+                    for row in range(self.log_area.rowCount()):
+                        rowdata = []
+                        for column in range(self.log_area.columnCount()):
+                            item = self.log_area.item(row, column)
+                            if item is not None:
+                                rowdata.append(
+                                    item.text()
+                                )
+                            else:
+                                rowdata.append('')
+                        writer.writerow(rowdata)
+
+    def save_log(self):
+        path, _ = QFileDialog.getSaveFileName(
+                self, 'Save File', self.file_name, 'CSV(*.csv)'
+            )
         if path:
             with open(path, 'w', newline='') as outfile:
                 writer = csv.writer(outfile)
@@ -364,23 +399,39 @@ class MissionPage(QWidget):
                         else:
                             rowdata.append('')
                     writer.writerow(rowdata)
-            return True and not temp
+            return True
         return False
 
-    """def load_log(self):
-        path = QFileDialog.getOpenFileName(
-                self, 'Open File', '', 'CSV(*.csv)')
-        if not path.isEmpty():
-            with open(unicode(path), 'rb') as stream:
-                self.log_area.setRowCount(0)
-                self.log_area.setColumnCount(0)
-                for rowdata in csv.reader(stream):
-                    row = self.log_area.rowCount()
-                    self.log_area.insertRow(row)
-                    self.log_area.setColumnCount(len(rowdata))
-                    for column, data in enumerate(rowdata):
-                        item = QTableWidgetItem(data.decode('utf8'))
-                        self.log_area.setItem(row, column, item)"""
+    # def load_log(self):
+    #     path = QFileDialog.getOpenFileName(
+    #             self, 'Open File', '', 'CSV(*.csv)')
+    #     if not path.isEmpty():
+    #         with open(bytes(path), 'rb') as stream:
+    #             self.log_area.setRowCount(0)
+    #             self.log_area.setColumnCount(0)
+    #             for rowdata in csv.reader(stream):
+    #                 row = self.log_area.rowCount()
+    #                 self.log_area.insertRow(row)
+    #                 self.log_area.setColumnCount(len(rowdata))
+    #                 for column, data in enumerate(rowdata):
+    #                     item = QTableWidgetItem(data.decode('utf8'))
+    #                     self.log_area.setItem(row, column, item)
+
+    @pyqtSlot()
+    def end_mission(self):
+        quit_prompt = QMessageBox.question(
+                    self,
+                    "End mission?",
+                    "If you choose to end this mission, the time hack will end and logging will stop. Really end?"  # noqa: E501
+                )
+        if quit_prompt == QMessageBox.Yes:
+            if self.save_log():
+                QMessageBox.information(
+                        self,
+                        "Mission Ended",
+                        "Mission has been ended and your logs have been saved."
+                    )
+                self.mission_ended.emit()
 
     @pyqtSlot(int)
     def set_timeout(self, timeout):

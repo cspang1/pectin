@@ -14,7 +14,7 @@ from PyQt5.QtCore import (
     pyqtSlot
 )
 from log_sources import LogSource
-import resources  # noqa: E401
+import resources  # noqa: F401
 
 
 class ActionsPage(QWidget):

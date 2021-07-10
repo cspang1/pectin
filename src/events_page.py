@@ -13,7 +13,7 @@ from PyQt5.QtCore import (
     pyqtSignal,
     pyqtSlot
 )
-import resources  # noqa: E401
+import resources  # noqa: F401
 
 
 class EventsPage(QWidget):

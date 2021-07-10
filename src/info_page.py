@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QGridLayout,
     QHBoxLayout,
-    QSizePolicy, QTextEdit,
+    QSizePolicy,
     QTimeEdit,
     QLabel,
     QFrame,
@@ -57,9 +57,13 @@ class TimeFrame(BaseFrame):
         self.hack_btn = QPushButton("Hack")
         self.hack_btn.setAutoDefault(False)
         if is_mission:
-            self.hack_btn.setStyleSheet("background-color: red; color: white;")
+            self.hack_btn.setStyleSheet(
+                "background-color: red; color: white;"
+            )
         else:
-            self.hack_btn.setStyleSheet("background-color: gray; color: white;")
+            self.hack_btn.setStyleSheet(
+                "background-color: gray; color: white;"
+            )
         self.sys_time_btn = QPushButton("Use System Time")
         self.sys_time_btn.setAutoDefault(False)
 
@@ -169,7 +173,7 @@ class MnemonicFrame(BaseFrame):
         self.layout.addWidget(self.mnem_select)
         self.setLayout(self.layout)
 
-        self.mnem_list_path = Path(__file__).parents[1] / "res" / "mnemonics.json"
+        self.mnem_list_path = Path(__file__).parents[1] / "res" / "mnemonics.json"  # noqa: E501
         os.makedirs(os.path.dirname(self.mnem_list_path), exist_ok=True)
 
         self.cur_mnemonics = None

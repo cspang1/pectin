@@ -16,7 +16,7 @@ from PyQt5.QtCore import (
     pyqtSignal
 )
 from setup_dialog import SetupDiag
-import resources  # noqa: E401
+import resources  # noqa: F401
 
 
 class LandingPage(QWidget):

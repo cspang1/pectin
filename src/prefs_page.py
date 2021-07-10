@@ -1,16 +1,12 @@
-import re
-import subprocess
-import time
 from PyQt5.QtWidgets import (
     QCheckBox, QDialog,
     QFormLayout,
     QDialogButtonBox, QHBoxLayout,
     QLabel,
-    QComboBox,
-    QPushButton, QSpinBox,
-    QSizePolicy, QLayout
+    QSpinBox,
+    QLayout
 )
-from PyQt5.QtCore import Qt, QSettings, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QSettings, pyqtSignal, pyqtSlot
 
 
 class PrefsPage(QDialog):
