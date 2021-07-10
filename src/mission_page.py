@@ -211,6 +211,11 @@ class MissionPage(QWidget):
         main_layout.addWidget(main_splitter)
         self.setLayout(main_layout)
 
+    # TODO
+    # Add recovered data parameter and populate log_area from it
+    # Add .json file generation to temp folder containing key parameters:
+    #   |_ Name of config file used
+    #   |_ Time hack offset from system time
     def load_mission(self, config, timer, time):
         for system in config['systems']:
             self.systems.add_action(system)
@@ -237,7 +242,6 @@ class MissionPage(QWidget):
             self.file_name
         )
         os.makedirs(os.path.dirname(self.temp_path), exist_ok=True)
-        # self.load_log()
 
     @pyqtSlot()
     def inc_time(self):

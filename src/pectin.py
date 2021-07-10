@@ -59,6 +59,8 @@ class pectin(QMainWindow):
         if prefs.exec():
             self.apply_prefs(prefs.dark_mode, prefs.timeout)
 
+    # TODO
+    # Add optional recovered data parameter
     @pyqtSlot(dict, QTimer, QTime)
     def setup_mission(self, config, timer, time):
         self.mission_page = MissionPage()
@@ -144,7 +146,7 @@ class pectin(QMainWindow):
             quit_prompt = QMessageBox.question(
                 self,
                 "Really quit?",
-                "You currently have a mission in progress. Are you sure you want to quit? The mission log will NOT be saved; click \"no\" and use the \"END MISSION\" button instead if this is not your intention."  # noqa: E501
+                "You currently have a mission in progress. Are you sure you want to quit?\r\n\r\nThe mission log will NOT be saved; click \"no\" and use the \"END MISSION\" button instead if this is not your intention."  # noqa: E501
             )
             if quit_prompt == QMessageBox.Yes:
                 QApplication.quit()
