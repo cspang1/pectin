@@ -140,12 +140,12 @@ class pectin(QMainWindow):
         self.timeout_set.emit(timeout)
 
     @pyqtSlot()
-    def verify_quit(self, event=None):
+    def verify_quit(self):
         if hasattr(self, 'mission_page'):
             quit_prompt = QMessageBox.question(
                 self,
                 "Really quit?",
-                "You currently have a mission in progress. Are you sure you want to quit?"
+                "You currently have a mission in progress. Are you sure you want to quit? The mission log will NOT be saved; click \"no\" and use the \"END MISSION\" button instead if this is not your intention."
             )
             if quit_prompt == QMessageBox.Yes:
                 QApplication.quit()
