@@ -25,6 +25,7 @@ from PyQt5.QtWidgets import (
     QWidget
 )
 from compass_widget import Compass
+from exact_angle import ExactAngle
 from log_sources import LogSource
 from angles import Angle
 import resources  # noqa: F401
@@ -138,6 +139,12 @@ class MissionPage(QWidget):
         compass_layout.addWidget(self.compass)
         self.compass.angle_event.connect(self.log_event)
 
+        self.exact_angle = ExactAngle()
+        self.exact_angle_widget = QWidget()
+        exact_angle_layout = QHBoxLayout()
+        exact_angle_layout.addWidget(self.exact_angle)
+        self.exact_angle_widget.setLayout(exact_angle_layout)
+
         header_layout = QHBoxLayout()
         self.zulu_time_label = QLabel()
         self.assessor_label = QLabel()
@@ -168,7 +175,8 @@ class MissionPage(QWidget):
         )
         actions_splitter.addWidget(self.systems)
         actions_splitter.addWidget(self.events)
-        actions_splitter.addWidget(self.compass_widget)
+        # actions_splitter.addWidget(self.compass_widget)
+        actions_splitter.addWidget(self.exact_angle)
         actions_splitter.setChildrenCollapsible(False)
         main_splitter = QSplitter(
             Qt.Vertical,
