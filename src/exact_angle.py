@@ -5,6 +5,7 @@ from PyQt5.QtGui import (
 )
 from PyQt5.QtCore import (
     Qt,
+    pyqtSignal,
     pyqtSlot
 )
 from PyQt5.QtWidgets import (
@@ -54,20 +55,63 @@ class AngleContainer(QWidget):
         overlay.setGeometry(self.geometry())
 
 
+class AngleButton(QPushButton):
+    pressed = pyqtSignal(int)
+
+    def __init__(self, value, parent=None):
+        super().__init__(str(value), parent)
+        self.setFont(QFont("Consolas", 16, 3))
+        self.setFixedSize(100, 50)
+        self.index = value
+        self.clicked.connect(lambda: self.pressed.emit(self.index))
+
+    def activate(self, active):
+        if active:
+            self.setStyleSheet("""
+                AngleButton {background-color: lime}
+                AngleButton:pressed {
+                    background-color: cyan
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                AngleButton {background-color: none}
+                AngleButton:pressed {
+                    background-color: none
+                }
+            """)
+
+
 class AngleSet(QWidget):
+    acted = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.active = 0
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-        layout = QVBoxLayout()
-        layout.setSpacing(0)
+        self.layout = QVBoxLayout()
+        self.layout.setSpacing(0)
         for digit in range(10):
-            tmp_btn = QPushButton(str(digit))
-            tmp_btn.setFixedSize(100, 50)
-            tmp_btn.setFont(QFont('Consolas', 16))
-            tmp_btn.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-            layout.addWidget(tmp_btn)
-        self.setLayout(layout)
+            tmp_btn = AngleButton(digit)
+            tmp_btn.pressed.connect(self.switch_active)
+            self.layout.addWidget(tmp_btn)
+        self.setLayout(self.layout)
+
+    @pyqtSlot(int)
+    def switch_active(self, target=None):
+        if target is None:
+            target = -1
+            for index in range(self.layout.count()):
+                self.layout.itemAt(index).widget().activate(False)
+        for index in range(self.layout.count()):
+            cur = self.layout.itemAt(index).widget()
+            if cur.index == self.active:
+                cur.activate(False)
+            if cur.index == target:
+                cur.activate(True)
+        self.active = target
+        if target != -1:
+            self.acted.emit(self.active)
 
 
 class ExactAngle(QWidget):
