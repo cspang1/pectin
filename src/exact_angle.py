@@ -57,6 +57,12 @@ class AngleButton(QPushButton):
         self.setFixedSize(100, 50)
         self.index = value
         self.clicked.connect(lambda: self.pressed.emit(self.index))
+        self.setStyleSheet("""
+            AngleButton {background-color: none}
+            AngleButton:pressed {
+                background-color: cyan
+            }
+        """)
 
     def activate(self, active):
         if active:
@@ -70,7 +76,7 @@ class AngleButton(QPushButton):
             self.setStyleSheet("""
                 AngleButton {background-color: none}
                 AngleButton:pressed {
-                    background-color: none
+                    background-color: cyan
                 }
             """)
 
