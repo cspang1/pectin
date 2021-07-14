@@ -114,7 +114,6 @@ class Compass(QWidget):
             angle = deg * 45
             temp.setText(str(angle) + '°')
             temp.setFont(deg_font)
-            temp.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
             tw = temp.fontMetrics().boundingRect(temp.text()).width()
             th = temp.fontMetrics().boundingRect(temp.text()).height()
             temp.move(self.deg_lbl_pos((180 - angle) % 360, QSize(tw, th)))

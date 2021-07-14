@@ -132,6 +132,7 @@ class MissionPage(QWidget):
         self.systems.acted.connect(self.log_event)
         self.events = ActionsWidget(LogSource.EVENT)
         self.events.acted.connect(self.log_event)
+
         self.compass = Compass()
         self.compass_widget = QWidget()
         compass_layout = QHBoxLayout()
@@ -142,8 +143,8 @@ class MissionPage(QWidget):
         self.exact_angle = ExactAngle()
         self.exact_angle_widget = QWidget()
         exact_angle_layout = QHBoxLayout()
-        exact_angle_layout.addWidget(self.exact_angle)
         self.exact_angle_widget.setLayout(exact_angle_layout)
+        exact_angle_layout.addWidget(self.exact_angle)
 
         header_layout = QHBoxLayout()
         self.zulu_time_label = QLabel()
@@ -176,7 +177,7 @@ class MissionPage(QWidget):
         actions_splitter.addWidget(self.systems)
         actions_splitter.addWidget(self.events)
         # actions_splitter.addWidget(self.compass_widget)
-        actions_splitter.addWidget(self.exact_angle)
+        actions_splitter.addWidget(self.exact_angle_widget)
         actions_splitter.setChildrenCollapsible(False)
         main_splitter = QSplitter(
             Qt.Vertical,

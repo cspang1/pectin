@@ -4,7 +4,6 @@ from PyQt5.QtGui import (
     QPen
 )
 from PyQt5.QtCore import (
-    QSize,
     Qt,
     pyqtSignal,
     pyqtSlot
@@ -88,9 +87,8 @@ class AngleSet(QWidget):
         super().__init__(parent)
         self.source = source
         self.active = 0
+        self.setFixedSize(100, 1000)
         limit = 4 if self.source is BtnSource.HUNDREDS else 10
-        # x_offset = 10 if self.source is BtnSource.HUNDREDS else \
-        #    120 if self.source is BtnSource.TENS else 230
         y_offset = 490
         self.digits = []
         for digit in range(limit):
@@ -118,10 +116,12 @@ class AngleSet(QWidget):
 
 
 class ExactAngle(QWidget):
+    angle_event = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setMinimumSize(450, 1000)
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.hundreds = AngleSet(BtnSource.HUNDREDS, self)
         self.tens = AngleSet(BtnSource.TENS, self)
         self.ones = AngleSet(BtnSource.ONES, self)
@@ -131,12 +131,10 @@ class ExactAngle(QWidget):
         for set in [self.hundreds, self.tens, self.ones]:
             set.acted.connect(self.digit_pressed)
         overlay = Overlay(self)
-        overlay.setGeometry(
-            0,
-            0,
-            self.sizeHint().width(),
-            self.sizeHint().height()
-        )
+        overlay.setGeometry(self.geometry())
+        deg_sym = QLabel("°", self)
+        deg_sym.setFont(QFont("Consolas", 32, 3))
+        deg_sym.move(350, 470)
 
     @pyqtSlot(int, BtnSource)
     def digit_pressed(self, value, source):
@@ -155,6 +153,3 @@ class ExactAngle(QWidget):
                 label.setStyleSheet("color: white")
             else:
                 label.setStyleSheet("color: none")
-
-    def sizeHint(self):
-        return QSize(450, 1000)
