@@ -187,6 +187,7 @@ class Compass(QWidget):
         for index in range(self.wedges.__len__()):
             self.wedges[index].activate(True if index == active else False)
 
+    @pyqtSlot()
     def clear_state(self):
         for wedge in self.wedges:
             wedge.mark(False)

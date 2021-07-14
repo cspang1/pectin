@@ -145,6 +145,7 @@ class MissionPage(QWidget):
         exact_angle_layout = QHBoxLayout()
         self.exact_angle_widget.setLayout(exact_angle_layout)
         exact_angle_layout.addWidget(self.exact_angle)
+        self.exact_angle.angle_event.connect(self.log_event)
 
         header_layout = QHBoxLayout()
         self.zulu_time_label = QLabel()
@@ -282,7 +283,8 @@ class MissionPage(QWidget):
                     2,
                     QTableWidgetItem(row[2])
                 )
-                self.log_area.scrollToBottom()
+        # TODO: This isn't working...
+        self.log_area.scrollToBottom()
 
     @pyqtSlot()
     def inc_time(self):
@@ -302,9 +304,12 @@ class MissionPage(QWidget):
         self.log_state.setInitialState(pre_system)
         pre_system.assignProperty(self.events, "enabled", False)
         pre_system.assignProperty(self.compass, "enabled", False)
+        pre_system.assignProperty(self.exact_angle, "enabled", False)
         pre_event.assignProperty(self.events, "enabled", True)
         pre_event.assignProperty(self.compass, "enabled", False)
+        pre_event.assignProperty(self.exact_angle, "enabled", False)
         post_event.assignProperty(self.compass, "enabled", True)
+        post_event.assignProperty(self.exact_angle, "enabled", True)
         pre_system.addTransition(
             self.systems.acted, pre_event
         )
@@ -327,6 +332,7 @@ class MissionPage(QWidget):
         pre_system.entered.connect(self.systems.switch_active)
         pre_event.entered.connect(self.events.switch_active)
         post_event.exited.connect(self.compass.clear_state)
+        post_event.exited.connect(self.exact_angle.clear_state)
         self.log_state.setRunning(True)
 
     @pyqtSlot(Angle)
@@ -374,6 +380,15 @@ class MissionPage(QWidget):
             angle = Angle.to_string(data)
             current = self.log_area.item(self.record, 2).text()
             current = current + angle
+            self.log_area.setItem(
+                self.record,
+                2,
+                QTableWidgetItem(current)
+            )
+        elif type(src) is ExactAngle:
+            angle = str(data)
+            current = self.log_area.item(self.record, 2).text()
+            current = f"{current} at {angle}°"
             self.log_area.setItem(
                 self.record,
                 2,
