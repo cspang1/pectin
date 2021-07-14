@@ -4,16 +4,15 @@ from PyQt5.QtGui import (
     QPen
 )
 from PyQt5.QtCore import (
+    QSize,
     Qt,
     pyqtSignal,
     pyqtSlot
 )
 from PyQt5.QtWidgets import (
-    QHBoxLayout,
     QLabel,
     QPushButton,
     QSizePolicy,
-    QVBoxLayout,
     QWidget
 )
 from enum import (
@@ -35,6 +34,7 @@ class Overlay(QWidget):
         super().__init__(parent)
         self.setAttribute(Qt.WA_NoSystemBackground)
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.raise_()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -43,8 +43,8 @@ class Overlay(QWidget):
         pen = QPen(Qt.red)
         pen.setWidth(5)
         painter.setPen(pen)
-        painter.drawLine(0, 10, self.parent().width() * 3, 10)
-        painter.drawLine(0, 59, self.parent().width() * 3, 59)
+        painter.drawLine(0, 490, 340, 490)
+        painter.drawLine(0, 540, 340, 540)
         painter.end()
 
 
@@ -88,26 +88,26 @@ class AngleSet(QWidget):
         super().__init__(parent)
         self.source = source
         self.active = 0
-        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-        self.layout = QVBoxLayout()
-        self.layout.setSpacing(0)
         limit = 4 if self.source is BtnSource.HUNDREDS else 10
+        # x_offset = 10 if self.source is BtnSource.HUNDREDS else \
+        #    120 if self.source is BtnSource.TENS else 230
+        y_offset = 490
+        self.digits = []
         for digit in range(limit):
-            tmp_btn = AngleButton(digit)
+            tmp_btn = AngleButton(digit, self)
+            tmp_btn.move(0, y_offset)
+            y_offset = y_offset + 50
             tmp_btn.pressed.connect(self.switch_active)
-            self.layout.addWidget(tmp_btn)
-        # self.layout.setAlignment(Qt.AlignTop)
-        # self.layout.addStretch()
-        self.setLayout(self.layout)
+            self.digits.append(tmp_btn)
 
     @pyqtSlot(int)
     def switch_active(self, target=None):
         if target is None:
             target = -1
-            for index in range(self.layout.count()):
-                self.layout.itemAt(index).widget().activate(False)
-        for index in range(self.layout.count()):
-            cur = self.layout.itemAt(index).widget()
+            for index in range(len(self.digits)):
+                self.digits[index].activate(False)
+        for index in range(len(self.digits)):
+            cur = self.digits[index]
             if cur.index == self.active:
                 cur.activate(False)
             if cur.index == target:
@@ -117,25 +117,26 @@ class AngleSet(QWidget):
             self.acted.emit(self.active, self.source)
 
 
-class AngleContainer(QWidget):
+class ExactAngle(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.hundreds = AngleSet(BtnSource.HUNDREDS)
-        self.tens = AngleSet(BtnSource.TENS)
-        self.ones = AngleSet(BtnSource.ONES)
+        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.hundreds = AngleSet(BtnSource.HUNDREDS, self)
+        self.tens = AngleSet(BtnSource.TENS, self)
+        self.ones = AngleSet(BtnSource.ONES, self)
+        self.hundreds.move(10, 0)
+        self.tens.move(120, 0)
+        self.ones.move(230, 0)
         for set in [self.hundreds, self.tens, self.ones]:
             set.acted.connect(self.digit_pressed)
-        layout = QHBoxLayout()
-        layout.addWidget(self.hundreds)
-        layout.addWidget(self.tens)
-        layout.addWidget(self.ones)
-        layout.setAlignment(self.hundreds, Qt.AlignTop)
-        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
         overlay = Overlay(self)
-        overlay.setGeometry(self.geometry())
+        overlay.setGeometry(
+            0,
+            0,
+            self.sizeHint().width(),
+            self.sizeHint().height()
+        )
 
     @pyqtSlot(int, BtnSource)
     def digit_pressed(self, value, source):
@@ -146,18 +147,6 @@ class AngleContainer(QWidget):
         if source is BtnSource.ONES:
             pass
 
-
-class ExactAngle(QWidget):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.angle_container = AngleContainer()
-        layout = QHBoxLayout()
-        layout.addStretch()
-        layout.addWidget(self.angle_container)
-        layout.addStretch()
-        self.setLayout(layout)
-
     @pyqtSlot(int)
     def set_dark_mode(self, enable):
         labels = self.findChildren(QLabel)
@@ -166,3 +155,6 @@ class ExactAngle(QWidget):
                 label.setStyleSheet("color: white")
             else:
                 label.setStyleSheet("color: none")
+
+    def sizeHint(self):
+        return QSize(450, 1000)
