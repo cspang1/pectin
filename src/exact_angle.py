@@ -147,7 +147,6 @@ class AngleSet(QWidget):
             return
         positions = self.digits_pos[diff:] + self.digits_pos[:diff]
         duration = diff * 50 * .8
-        print(duration)
 
         for digit in self.digits:
             new_pos = positions.index(digit.index)
