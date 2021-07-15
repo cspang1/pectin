@@ -5,6 +5,10 @@ from PyQt5.QtGui import (
     QPen
 )
 from PyQt5.QtCore import (
+    QAbstractAnimation,
+    QParallelAnimationGroup,
+    QPoint,
+    QPropertyAnimation,
     QSize,
     Qt,
     pyqtSignal,
@@ -58,6 +62,7 @@ class AngleButton(QPushButton):
         self.setFont(QFont("Consolas", 16, 3))
         self.setFixedSize(100, 50)
         self.index = value
+        self.activated = False
         self.clicked.connect(lambda: self.pressed.emit(self.index))
         self.setStyleSheet("""
             AngleButton {background-color: none}
@@ -74,6 +79,7 @@ class AngleButton(QPushButton):
                     background-color: cyan
                 }
             """)
+            self.activated = True
         else:
             self.setStyleSheet("""
                 AngleButton {background-color: none}
@@ -81,15 +87,15 @@ class AngleButton(QPushButton):
                     background-color: cyan
                 }
             """)
+            self.activated = False
 
-    def deactivate(self):
-        self.active = False
-        self.setStyleSheet("""
-                AngleButton {background-color: none}
-                AngleButton:pressed {
-                    background-color: cyan
-                }
-            """)
+    @pyqtSlot(QAbstractAnimation.State)
+    def disable(self, state):
+        if state == QAbstractAnimation.Running:
+            self.setEnabled(False)
+        elif state == QAbstractAnimation.Stopped:
+            self.setEnabled(True)
+            self.activate(self.activated)
 
 
 class AngleSet(QWidget):
@@ -100,14 +106,17 @@ class AngleSet(QWidget):
         self.source = source
         self.active = 0
         self.setFixedSize(100, 550)
-        limit = 4 if self.source is BtnSource.HUNDREDS else 10
+        self.anim_gp = QParallelAnimationGroup()
+        self.limit = 4 if self.source is BtnSource.HUNDREDS else 10
         y_offset = 55
         self.digits = []
-        for digit in range(limit):
+        self.digits_pos = [idx for idx in range(self.limit)]
+        for digit in range(self.limit):
             tmp_btn = AngleButton(digit, self)
             tmp_btn.move(0, y_offset)
             y_offset = y_offset + 50
             tmp_btn.pressed.connect(self.switch_active)
+            self.anim_gp.stateChanged.connect(tmp_btn.disable)
             self.digits.append(tmp_btn)
 
     @pyqtSlot(int)
@@ -115,20 +124,55 @@ class AngleSet(QWidget):
         if target is None:
             target = -1
             for index in range(len(self.digits)):
+                self.active = target
                 self.digits[index].activate(False)
+                return
+
         for index in range(len(self.digits)):
             cur = self.digits[index]
             if cur.index == self.active:
                 cur.activate(False)
             if cur.index == target:
                 cur.activate(True)
+
         self.active = target
-        if target != -1:
-            self.acted.emit(self.active, self.source)
+        self.acted.emit(self.active, self.source)
+        self.anim_set(target)
+
+    def anim_set(self, target):
+        self.anims = []
+        self.anim_gp.clear()
+        diff = self.digits_pos.index(target)
+        if not diff:
+            return
+        positions = self.digits_pos[diff:] + self.digits_pos[:diff]
+        duration = diff * 50 * .8
+        print(duration)
+
+        for digit in self.digits:
+            new_pos = positions.index(digit.index)
+            if new_pos > self.digits_pos.index(digit.index):
+                pass  # Wrapped
+            else:
+                anim = QPropertyAnimation(digit, b"pos", digit)
+                anim.setDuration(duration)
+                anim.setStartValue(digit.pos())
+                anim.setEndValue(
+                    QPoint(
+                        digit.pos().x(), digit.pos().y() - diff * 50
+                    )
+                )
+                self.anims.append(anim)
+
+        for anim in self.anims:
+            self.anim_gp.addAnimation(anim)
+        self.anim_gp.start()
+
+        self.digits_pos = positions
 
     def reset(self):
         for digit in self.digits:
-            digit.deactivate()
+            digit.activate(False)
 
 
 class ExactAngle(QWidget):
@@ -140,9 +184,9 @@ class ExactAngle(QWidget):
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
         self.selected = {
-            BtnSource.HUNDREDS: (False, -1),
-            BtnSource.TENS: (False, -1),
-            BtnSource.ONES: (False, -1)
+            BtnSource.HUNDREDS: (False, None),
+            BtnSource.TENS: (False, None),
+            BtnSource.ONES: (False, None)
         }
 
         self.hundreds = AngleSet(BtnSource.HUNDREDS, self)

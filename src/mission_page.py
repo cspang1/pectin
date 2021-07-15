@@ -304,12 +304,12 @@ class MissionPage(QWidget):
         self.log_state.setInitialState(pre_system)
         pre_system.assignProperty(self.events, "enabled", False)
         pre_system.assignProperty(self.compass, "enabled", False)
-        pre_system.assignProperty(self.exact_angle, "enabled", False)
+        # pre_system.assignProperty(self.exact_angle, "enabled", False)
         pre_event.assignProperty(self.events, "enabled", True)
         pre_event.assignProperty(self.compass, "enabled", False)
         pre_event.assignProperty(self.exact_angle, "enabled", False)
         post_event.assignProperty(self.compass, "enabled", True)
-        post_event.assignProperty(self.exact_angle, "enabled", True)
+        # post_event.assignProperty(self.exact_angle, "enabled", True)
         pre_system.addTransition(
             self.systems.acted, pre_event
         )
