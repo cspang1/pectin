@@ -15,6 +15,7 @@ from PyQt5.QtCore import (
     pyqtSlot
 )
 from PyQt5.QtWidgets import (
+    QGraphicsOpacityEffect,
     QLabel,
     QPushButton,
     QSizePolicy,
@@ -54,6 +55,33 @@ class Overlay(QWidget):
         painter.end()
 
 
+class DummyButton(QPushButton):
+
+    def __init__(self, value, parent=None):
+        super().__init__(str(value), parent)
+        self.setFont(QFont("Consolas", 16, 3))
+        self.setFixedSize(100, 50)
+        self.done = False
+        self.index = value
+        self.effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.effect)
+        self.fade_anim = QPropertyAnimation(self.effect, b"opacity")
+        self.effect.setOpacity(1)
+        self.fade_anim.setDuration(40)
+        self.fade_anim.setStartValue(0)
+        self.fade_anim.setEndValue(1)
+        self.fade_anim.stateChanged.connect(self.finish)
+
+    def finish(self, state):
+        if state == QAbstractAnimation.Stopped:
+            self.done = True
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self.pos().y() < 555 and not self.done:
+            self.fade_anim.start()
+
+
 class AngleButton(QPushButton):
     pressed = pyqtSignal(int)
 
@@ -70,6 +98,18 @@ class AngleButton(QPushButton):
                 background-color: cyan
             }
         """)
+        self.effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.effect)
+        self.effect.setOpacity(1)
+        self.fade_anim = QPropertyAnimation(self.effect, b"opacity")
+        self.fade_anim.setDuration(40)
+        self.fade_anim.setStartValue(1)
+        self.fade_anim.setEndValue(0)
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self.pos().y() < 55:
+            self.fade_anim.start()
 
     def activate(self, active):
         if active:
@@ -96,6 +136,8 @@ class AngleButton(QPushButton):
         elif state == QAbstractAnimation.Stopped:
             self.setEnabled(True)
             self.activate(self.activated)
+            self.effect.setOpacity(1)
+            self.update()
 
 
 class AngleSet(QWidget):
@@ -105,8 +147,9 @@ class AngleSet(QWidget):
         super().__init__(parent)
         self.source = source
         self.active = 0
-        self.setFixedSize(100, 550)
+        self.setMinimumSize(100, 555)
         self.anim_gp = QParallelAnimationGroup()
+        self.anim_gp.finished.connect(self.post_animation)
         self.limit = 4 if self.source is BtnSource.HUNDREDS else 10
         y_offset = 55
         self.digits = []
@@ -148,26 +191,50 @@ class AngleSet(QWidget):
         positions = self.digits_pos[diff:] + self.digits_pos[:diff]
         duration = diff * 50 * .8
 
+        self.loopers = []
+        y_offset = 555
         for digit in self.digits:
             new_pos = positions.index(digit.index)
-            if new_pos > self.digits_pos.index(digit.index):
-                pass  # Wrapped
-            else:
-                anim = QPropertyAnimation(digit, b"pos", digit)
+            cur_pos = self.digits_pos.index(digit.index)
+            if new_pos > cur_pos:
+                dummy = DummyButton(digit.index, self)
+                dummy.move(0, y_offset)
+                y_offset = y_offset + 50
+                dummy.show()
+                self.loopers.append(dummy)
+                anim = QPropertyAnimation(dummy, b"pos", dummy)
                 anim.setDuration(duration)
-                anim.setStartValue(digit.pos())
+                anim.setStartValue(dummy.pos())
                 anim.setEndValue(
                     QPoint(
-                        digit.pos().x(), digit.pos().y() - diff * 50
+                        dummy.pos().x(), dummy.pos().y() - diff * 50
                     )
                 )
                 self.anims.append(anim)
+
+            anim = QPropertyAnimation(digit, b"pos", digit)
+            anim.setDuration(duration)
+            anim.setStartValue(digit.pos())
+            anim.setEndValue(
+                QPoint(
+                    digit.pos().x(), digit.pos().y() - diff * 50
+                )
+            )
+            self.anims.append(anim)
 
         for anim in self.anims:
             self.anim_gp.addAnimation(anim)
         self.anim_gp.start()
 
         self.digits_pos = positions
+
+    @pyqtSlot()
+    def post_animation(self):
+        for looper in self.loopers:
+            self.digits[looper.index].move(looper.pos())
+            for digit in self.digits:
+                print(f'{digit.index}: {digit.effect.opacity()}')
+            looper.setParent(None)
 
     def reset(self):
         for digit in self.digits:
@@ -179,7 +246,7 @@ class ExactAngle(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumSize(450, 550)
+        self.setMinimumSize(450, 555)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
         self.selected = {
