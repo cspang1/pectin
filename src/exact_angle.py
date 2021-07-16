@@ -152,6 +152,7 @@ class AngleSet(QWidget):
         super().__init__(parent)
         self.source = source
         self.active = 0
+        self.is_limited = False
         self.limit = 4 if self.source is BtnSource.HUNDREDS else 10
         self.setMinimumSize(100, 105 + self.limit * 50)
         self.anim_gp = QParallelAnimationGroup()
@@ -291,17 +292,13 @@ class ExactAngle(QWidget):
 
     @pyqtSlot()
     def log_angle(self):
-        self.angle_event.emit(
-            self.selected[BtnSource.HUNDREDS][1] * 100 +
-            self.selected[BtnSource.TENS][1] * 10 +
-            self.selected[BtnSource.ONES][1]
-        )
+        self.angle_event.emit(self.calc_angle())
 
     @pyqtSlot(int, BtnSource)
     def digit_pressed(self, value, source):
         self.selected[source] = True, value
         if all(val[0] is True for val in self.selected.values()):
-            self.go_btn.setEnabled(True)
+            self.go_btn.setEnabled(self.calc_angle() <= 360)
 
     @pyqtSlot()
     def clear_state(self):
@@ -316,3 +313,8 @@ class ExactAngle(QWidget):
                 label.setStyleSheet("color: white")
             else:
                 label.setStyleSheet("color: none")
+
+    def calc_angle(self):
+        return self.selected[BtnSource.HUNDREDS][1] * 100 + \
+            self.selected[BtnSource.TENS][1] * 10 + \
+            self.selected[BtnSource.ONES][1]
