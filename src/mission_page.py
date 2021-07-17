@@ -333,7 +333,7 @@ class MissionPage(QWidget):
         pre_system.entered.connect(self.systems.switch_active)
         pre_event.entered.connect(self.events.switch_active)
         post_event.exited.connect(self.compass.clear_state)
-        post_event.exited.connect(self.exact_angle.clear_state)
+        post_event.exited.connect(self.exact_angle.timeout_log)
         self.log_state.setRunning(True)
 
     @pyqtSlot(Angle)

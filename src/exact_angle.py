@@ -312,6 +312,8 @@ class ExactAngle(QWidget):
             if self.tens.active == 6:
                 for digit in self.ones.digits[1:]:
                     digit.setEnabled(False)
+            if self.ones.active > 0:
+                self.tens.digits[6].setEnabled(False)
         if self.tens.active > 6:
             self.hundreds.digits[3].setEnabled(False)
         if self.tens.active == 6 and self.ones.active > 0:
@@ -332,6 +334,11 @@ class ExactAngle(QWidget):
                 label.setStyleSheet("color: white")
             else:
                 label.setStyleSheet("color: none")
+
+    @pyqtSlot()
+    def timeout_log(self):
+        if all(val[0] is True for val in self.selected.values()):
+            self.log_angle()
 
     def calc_angle(self):
         return self.selected[BtnSource.HUNDREDS][1] * 100 + \
