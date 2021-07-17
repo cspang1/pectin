@@ -145,6 +145,7 @@ class MissionPage(QWidget):
         exact_angle_layout = QHBoxLayout()
         self.exact_angle_widget.setLayout(exact_angle_layout)
         exact_angle_layout.addWidget(self.exact_angle)
+        self.exact_angle.btn_event.connect(self.reset_timer)
         self.exact_angle.angle_event.connect(self.log_event)
 
         header_layout = QHBoxLayout()
@@ -304,12 +305,12 @@ class MissionPage(QWidget):
         self.log_state.setInitialState(pre_system)
         pre_system.assignProperty(self.events, "enabled", False)
         pre_system.assignProperty(self.compass, "enabled", False)
-        # pre_system.assignProperty(self.exact_angle, "enabled", False)
+        pre_system.assignProperty(self.exact_angle, "enabled", False)
         pre_event.assignProperty(self.events, "enabled", True)
         pre_event.assignProperty(self.compass, "enabled", False)
         pre_event.assignProperty(self.exact_angle, "enabled", False)
         post_event.assignProperty(self.compass, "enabled", True)
-        # post_event.assignProperty(self.exact_angle, "enabled", True)
+        post_event.assignProperty(self.exact_angle, "enabled", True)
         pre_system.addTransition(
             self.systems.acted, pre_event
         )
@@ -494,6 +495,10 @@ class MissionPage(QWidget):
                             f"Error encountered attempting to delete temp files: { e.strerror }"  # noqa: E501
                         )
                 self.mission_ended.emit()
+
+    @pyqtSlot()
+    def reset_timer(self):
+        self.timeout_timer.start()
 
     @pyqtSlot(int)
     def set_timeout(self, timeout):

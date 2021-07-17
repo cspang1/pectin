@@ -93,12 +93,7 @@ class AngleButton(QPushButton):
         self.index = value
         self.activated = False
         self.clicked.connect(lambda: self.pressed.emit(self.index))
-        self.setStyleSheet("""
-            AngleButton {background-color: none}
-            AngleButton:pressed {
-                background-color: cyan
-            }
-        """)
+        self.activate(False)
         self.setup_fade()
 
     def moveEvent(self, event):
@@ -242,14 +237,18 @@ class AngleSet(QWidget):
             looper.setParent(None)
         for digit in self.digits:
             digit.disable(False)
+        self.parent().rectify()
 
     def reset(self):
         for digit in self.digits:
             digit.activate(False)
+        self.active = -1
+        self.anim_set(0)
 
 
 class ExactAngle(QWidget):
     angle_event = pyqtSignal(int)
+    btn_event = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -280,7 +279,7 @@ class ExactAngle(QWidget):
         deg_sym.setFont(QFont("Consolas", 32, 3))
         deg_sym.move(350, 40)
 
-        self.go_btn = QPushButton(QIcon(":/icons/tick_red.png"), "", self)
+        self.go_btn = QPushButton(QIcon(":/icons/add.png"), "", self)
         self.go_btn.setEnabled(False)
         self.go_btn.move(385, 55)
         self.go_btn.setFixedSize(50, 50)
@@ -293,17 +292,37 @@ class ExactAngle(QWidget):
     @pyqtSlot()
     def log_angle(self):
         self.angle_event.emit(self.calc_angle())
+        self.go_btn.setEnabled(False)
+        self.clear_state()
 
     @pyqtSlot(int, BtnSource)
     def digit_pressed(self, value, source):
+        self.btn_event.emit()
         self.selected[source] = True, value
         if all(val[0] is True for val in self.selected.values()):
-            self.go_btn.setEnabled(self.calc_angle() <= 360)
+            self.go_btn.setEnabled(True)
+
+    def rectify(self):
+        for angle_set in self.angle_sets:
+            for digit in angle_set.digits:
+                digit.setEnabled(True)
+        if self.hundreds.active == 3:
+            for digit in self.tens.digits[7:]:
+                digit.setEnabled(False)
+            if self.tens.active == 6:
+                for digit in self.ones.digits[1:]:
+                    digit.setEnabled(False)
+        if self.tens.active > 6:
+            self.hundreds.digits[3].setEnabled(False)
+        if self.tens.active == 6 and self.ones.active > 0:
+            self.hundreds.digits[3].setEnabled(False)
 
     @pyqtSlot()
     def clear_state(self):
         for angle_set in self.angle_sets:
             angle_set.reset()
+        for key in self.selected:
+            self.selected[key] = False, None
 
     @pyqtSlot(int)
     def set_dark_mode(self, enable):
