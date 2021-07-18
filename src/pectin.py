@@ -113,7 +113,6 @@ class pectin(QMainWindow):
         self.mission_page.load_mission(config, timer, time, recovered)
         self.mission_page.mission_ended.connect(self.set_landing_page)
         self.timeout_set.connect(self.mission_page.set_timeout)
-        self.dark_mode_set.connect(self.mission_page.compass.set_dark_mode)
         self.dark_mode_set.connect(self.mission_page.set_dark_mode)
         self.setCentralWidget(self.mission_page)
 

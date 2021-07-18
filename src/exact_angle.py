@@ -326,15 +326,6 @@ class ExactAngle(QWidget):
         for key in self.selected:
             self.selected[key] = False, None
 
-    @pyqtSlot(int)
-    def set_dark_mode(self, enable):
-        labels = self.findChildren(QLabel)
-        for label in labels:
-            if enable:
-                label.setStyleSheet("color: white")
-            else:
-                label.setStyleSheet("color: none")
-
     @pyqtSlot()
     def timeout_log(self):
         if all(val[0] is True for val in self.selected.values()):
@@ -344,3 +335,12 @@ class ExactAngle(QWidget):
         return self.selected[BtnSource.HUNDREDS][1] * 100 + \
             self.selected[BtnSource.TENS][1] * 10 + \
             self.selected[BtnSource.ONES][1]
+
+    @pyqtSlot(int)
+    def set_dark_mode(self, enable):
+        labels = self.findChildren(QLabel)
+        for label in labels:
+            if enable:
+                label.setStyleSheet("color: white")
+            else:
+                label.setStyleSheet("color: none")

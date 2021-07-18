@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QSizePolicy,
     QSplitter,
+    QTabWidget,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -148,6 +149,46 @@ class MissionPage(QWidget):
         self.exact_angle.btn_event.connect(self.reset_timer)
         self.exact_angle.angle_event.connect(self.log_event)
 
+        tab_widget = QTabWidget()
+        tab_bar = tab_widget.tabBar()
+        tab_bar.setFont(QFont('Consolas', 12, 3))
+        tab_widget.addTab(self.compass_widget, "Compass")
+        tab_widget.addTab(self.exact_angle_widget, "Precise Angle")
+        tab_widget.setStyleSheet("""
+                QTabWidget::pane {
+                    border-top: 2px solid #C2C7CB;
+                }
+                /* Style the tab using the tab sub-control. Note that
+                    it reads QTabBar _not_ QTabWidget */
+                QTabBar::tab {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
+                                stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
+                    border: 2px solid #C4C4C3;
+                    border-bottom-color: #C2C7CB; /* same as the pane color */
+                    border-top-left-radius: 4px;
+                    border-top-right-radius: 4px;
+                    min-width: 8ex;
+                    padding: 2px;
+                    color: black;
+                }
+
+                QTabBar::tab:selected, QTabBar::tab:hover {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #fafafa, stop: 0.4 #f4f4f4,
+                                stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);
+                }
+
+                QTabBar::tab:selected {
+                    border-color: #ff0000;
+                    border-bottom-color: #C2C7CB; /* same as pane color */
+                }
+
+                QTabBar::tab:!selected {
+                    margin-top: 2px; /* make non-selected tabs look smaller */
+                }
+            """)
+
         header_layout = QHBoxLayout()
         self.zulu_time_label = QLabel()
         self.assessor_label = QLabel()
@@ -179,7 +220,8 @@ class MissionPage(QWidget):
         actions_splitter.addWidget(self.systems)
         actions_splitter.addWidget(self.events)
         # actions_splitter.addWidget(self.compass_widget)
-        actions_splitter.addWidget(self.exact_angle_widget)
+        # actions_splitter.addWidget(self.exact_angle_widget)
+        actions_splitter.addWidget(tab_widget)
         actions_splitter.setChildrenCollapsible(False)
         main_splitter = QSplitter(
             Qt.Vertical,

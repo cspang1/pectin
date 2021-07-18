@@ -191,12 +191,3 @@ class Compass(QWidget):
     def clear_state(self):
         for wedge in self.wedges:
             wedge.mark(False)
-
-    @pyqtSlot(int)
-    def set_dark_mode(self, enable):
-        labels = self.findChildren(QLabel)
-        for label in labels:
-            if enable:
-                label.setStyleSheet("color: white")
-            else:
-                label.setStyleSheet("color: none")
