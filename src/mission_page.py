@@ -1,6 +1,5 @@
 from PyQt5.QtCore import (
     QDate,
-    QObjectCleanupHandler,
     QSize,
     QState,
     QStateMachine,
@@ -12,6 +11,7 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
+    QApplication,
     QFileDialog,
     QFrame,
     QGridLayout,
@@ -35,6 +35,7 @@ import resources  # noqa: F401
 import csv
 import os
 import json
+import math
 from pathlib import Path
 
 
@@ -74,22 +75,34 @@ class ActionsWidget(QWidget):
     def __init__(self, source, parent=None):
         super().__init__(parent)
         self.source = source
-        self.multi_col = False
+        self.columns = 1
         self.btns = []
-        self.main_layout = QVBoxLayout()
+        self.main_layout = QGridLayout()
         self.setLayout(self.main_layout)
         self.active = None
 
-    def add_action(self, action):
-        temp_btn = LogButton(action, self.source)
-        temp_btn.setSizePolicy(
-            QSizePolicy.Preferred,
-            QSizePolicy.Minimum
-        )
-        self.btns.append(temp_btn)
-        temp_btn.set_index(len(self.btns) - 1)
-        temp_btn.pressed.connect(self.switch_active)
-        self.main_layout.addWidget(temp_btn)
+    def add_actions(self, actions):
+        for action in actions:
+            temp_btn = LogButton(action, self.source)
+            temp_btn.setSizePolicy(
+                QSizePolicy.Preferred,
+                QSizePolicy.Minimum
+            )
+            self.btns.append(temp_btn)
+            temp_btn.set_index(len(self.btns) - 1)
+            temp_btn.pressed.connect(self.switch_active)
+
+        max_height = QApplication.primaryScreen().size().height() * .75
+        height = self.btns[0].minimumSizeHint().height() * len(self.btns)
+        n_cols = math.ceil(height / max_height)
+
+        row = col = 0
+        for btn in self.btns:
+            self.main_layout.addWidget(btn, row, col)
+            col += 1
+            if col > n_cols - 1:
+                col = 0
+                row += 1
 
     def get_action(self, index):
         return self.btns[index].text()
@@ -111,21 +124,17 @@ class ActionsWidget(QWidget):
             self.acted.emit(self.active)
 
     def resize(self, height):
-        if self.height() <= height * 0.75 or self.multi_col:
-            return
-        self.multi_col = True
-        old_layout = self.layout()
-        cols = [QVBoxLayout(), QVBoxLayout()]
-        while old_layout.count():
-            child = old_layout.takeAt(0)
-            if child.widget():
-                self.main_layout.removeItem(child)
-                cols[0].addWidget(child.widget())
-                cols[1], cols[0] = cols[0], cols[1]
-        QObjectCleanupHandler().add(old_layout)
-        self.main_layout = QHBoxLayout(self)
-        self.main_layout.addLayout(cols[0])
-        self.main_layout.addLayout(cols[1])
+        return
+        cur_height = self.btns[0].minimumSizeHint().height() * len(self.btns)
+        if cur_height > height * .75:
+            self.columns += 1
+            row = col = 0
+            for btn in self.btns:
+                self.main_layout.addWidget(btn, row, col)
+                col += 1
+                if col > self.columns - 1:
+                    col = 0
+                    row += 1
 
 
 class MissionPage(QWidget):
@@ -288,10 +297,14 @@ class MissionPage(QWidget):
         self.setLayout(main_layout)
 
     def load_mission(self, config, timer, time, recovered=None):
+        cfg_systems = []
+        cfg_events = []
         for system in config['systems']:
-            self.systems.add_action(system)
+            cfg_systems.append(system)
         for event in config['events']:
-            self.events.add_action(event)
+            cfg_events.append(event)
+        self.systems.add_actions(cfg_systems)
+        self.events.add_actions(cfg_events)
         self.timer = timer
         self.timer.timeout.connect(self.inc_time)
         self.time = time
@@ -566,8 +579,8 @@ class MissionPage(QWidget):
 
     @pyqtSlot(QSize)
     def window_resized(self, size):
-        self.events.resize(size.height())
-        self.systems.resize(size.height())
+        # TODO: Implement resize of columns
+        return
 
     @pyqtSlot(int)
     def set_dark_mode(self, enable):
