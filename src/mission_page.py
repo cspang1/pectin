@@ -11,7 +11,6 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
-    QApplication,
     QFileDialog,
     QFrame,
     QGridLayout,
@@ -31,110 +30,12 @@ from compass_widget import Compass
 from exact_angle import ExactAngle
 from log_sources import LogSource
 from angles import Angle
+from actions_widget import ActionsWidget
 import resources  # noqa: F401
 import csv
 import os
 import json
-import math
 from pathlib import Path
-
-
-class LogButton(QPushButton):
-    pressed = pyqtSignal(int)
-
-    def __init__(self, text, source, parent=None):
-        super().__init__(text, parent)
-        self.source = source
-        self.setFont(QFont("Consolas", 24, 3))
-        self.index = None
-        self.clicked.connect(lambda: self.pressed.emit(self.index))
-
-    def set_index(self, index):
-        self.index = index
-
-    def activate(self, active):
-        if active:
-            self.setStyleSheet("""
-                LogButton {background-color: lime}
-                LogButton:pressed {
-                    background-color: cyan
-                }
-            """)
-        else:
-            self.setStyleSheet("""
-                LogButton {background-color: none}
-                LogButton:pressed {
-                    background-color: none
-                }
-            """)
-
-
-class ActionsWidget(QWidget):
-    acted = pyqtSignal(int)
-
-    def __init__(self, source, parent=None):
-        super().__init__(parent)
-        self.source = source
-        self.columns = 1
-        self.btns = []
-        self.main_layout = QGridLayout()
-        self.setLayout(self.main_layout)
-        self.active = None
-
-    def add_actions(self, actions):
-        for action in actions:
-            temp_btn = LogButton(action, self.source)
-            temp_btn.setSizePolicy(
-                QSizePolicy.Preferred,
-                QSizePolicy.Minimum
-            )
-            self.btns.append(temp_btn)
-            temp_btn.set_index(len(self.btns) - 1)
-            temp_btn.pressed.connect(self.switch_active)
-
-        max_height = QApplication.primaryScreen().size().height() * .75
-        height = self.btns[0].minimumSizeHint().height() * len(self.btns)
-        n_cols = math.ceil(height / max_height)
-
-        row = col = 0
-        for btn in self.btns:
-            self.main_layout.addWidget(btn, row, col)
-            col += 1
-            if col > n_cols - 1:
-                col = 0
-                row += 1
-
-    def get_action(self, index):
-        return self.btns[index].text()
-
-    @pyqtSlot(int)
-    @pyqtSlot()
-    def switch_active(self, target=None):
-        if target is None:
-            target = -1
-            for btn in self.btns:
-                btn.activate(False)
-        for btn in self.btns:
-            if btn.index == self.active:
-                btn.activate(False)
-            if btn.index == target:
-                btn.activate(True)
-        self.active = target
-        if target != -1:
-            self.acted.emit(self.active)
-
-    def resize(self, height):
-        return
-        cur_height = self.btns[0].minimumSizeHint().height() * len(self.btns)
-        if cur_height > height * .75:
-            self.columns += 1
-            row = col = 0
-            for btn in self.btns:
-                self.main_layout.addWidget(btn, row, col)
-                col += 1
-                if col > self.columns - 1:
-                    col = 0
-                    row += 1
 
 
 class MissionPage(QWidget):
@@ -263,7 +164,7 @@ class MissionPage(QWidget):
         )
         self.log_area.horizontalHeader().setStretchLastSection(True)
         self.set_dark_mode(dark_mode)
-        end_msn_btn = QPushButton("END MISSION")
+        end_msn_btn = QPushButton("END\r\nMISSION")
         end_msn_btn.clicked.connect(self.end_mission)
         end_msn_btn.setFont(QFont("Consolas", 32, 5))
         end_msn_btn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
