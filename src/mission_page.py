@@ -1,5 +1,7 @@
 from PyQt5.QtCore import (
     QDate,
+    QObjectCleanupHandler,
+    QSize,
     QState,
     QStateMachine,
     QTimer,
@@ -72,6 +74,8 @@ class ActionsWidget(QWidget):
     def __init__(self, source, parent=None):
         super().__init__(parent)
         self.source = source
+        self.multi_col = False
+        self.btns = []
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
         self.active = None
@@ -82,30 +86,46 @@ class ActionsWidget(QWidget):
             QSizePolicy.Preferred,
             QSizePolicy.Minimum
         )
-        self.main_layout.addWidget(temp_btn)
-        temp_btn.set_index(self.main_layout.count() - 1)
+        self.btns.append(temp_btn)
+        temp_btn.set_index(len(self.btns) - 1)
         temp_btn.pressed.connect(self.switch_active)
-        return temp_btn
+        self.main_layout.addWidget(temp_btn)
 
     def get_action(self, index):
-        return self.main_layout.itemAt(index).widget().text()
+        return self.btns[index].text()
 
     @pyqtSlot(int)
     @pyqtSlot()
     def switch_active(self, target=None):
         if target is None:
             target = -1
-            for index in range(self.main_layout.count()):
-                self.main_layout.itemAt(index).widget().activate(False)
-        for index in range(self.main_layout.count()):
-            cur = self.main_layout.itemAt(index).widget()
-            if cur.index == self.active:
-                cur.activate(False)
-            if cur.index == target:
-                cur.activate(True)
+            for btn in self.btns:
+                btn.activate(False)
+        for btn in self.btns:
+            if btn.index == self.active:
+                btn.activate(False)
+            if btn.index == target:
+                btn.activate(True)
         self.active = target
         if target != -1:
             self.acted.emit(self.active)
+
+    def resize(self, height):
+        if self.height() <= height * 0.75 or self.multi_col:
+            return
+        self.multi_col = True
+        old_layout = self.layout()
+        cols = [QVBoxLayout(), QVBoxLayout()]
+        while old_layout.count():
+            child = old_layout.takeAt(0)
+            if child.widget():
+                self.main_layout.removeItem(child)
+                cols[0].addWidget(child.widget())
+                cols[1], cols[0] = cols[0], cols[1]
+        QObjectCleanupHandler().add(old_layout)
+        self.main_layout = QHBoxLayout(self)
+        self.main_layout.addLayout(cols[0])
+        self.main_layout.addLayout(cols[1])
 
 
 class MissionPage(QWidget):
@@ -219,8 +239,6 @@ class MissionPage(QWidget):
         )
         actions_splitter.addWidget(self.systems)
         actions_splitter.addWidget(self.events)
-        # actions_splitter.addWidget(self.compass_widget)
-        # actions_splitter.addWidget(self.exact_angle_widget)
         actions_splitter.addWidget(tab_widget)
         actions_splitter.setChildrenCollapsible(False)
         main_splitter = QSplitter(
@@ -545,6 +563,11 @@ class MissionPage(QWidget):
     @pyqtSlot(int)
     def set_timeout(self, timeout):
         self.timeout_timer.setInterval(timeout * 1000)
+
+    @pyqtSlot(QSize)
+    def window_resized(self, size):
+        self.events.resize(size.height())
+        self.systems.resize(size.height())
 
     @pyqtSlot(int)
     def set_dark_mode(self, enable):

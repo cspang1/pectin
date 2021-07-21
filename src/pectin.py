@@ -1,6 +1,7 @@
 from PyQt5.QtCore import (
     QCoreApplication,
     QSettings,
+    QSize,
     QTime,
     QTimer,
     Qt,
@@ -27,6 +28,7 @@ from pathlib import Path
 class pectin(QMainWindow):
     dark_mode_set = pyqtSignal(int)
     timeout_set = pyqtSignal(int)
+    window_resize = pyqtSignal(QSize)
 
     def __init__(self):
         super().__init__()
@@ -114,6 +116,7 @@ class pectin(QMainWindow):
         self.mission_page.mission_ended.connect(self.set_landing_page)
         self.timeout_set.connect(self.mission_page.set_timeout)
         self.dark_mode_set.connect(self.mission_page.set_dark_mode)
+        self.window_resize.connect(self.mission_page.window_resized)
         self.setCentralWidget(self.mission_page)
 
     @pyqtSlot(str)
@@ -197,3 +200,7 @@ class pectin(QMainWindow):
                 QApplication.quit()
         else:
             QApplication.quit()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.window_resize.emit(self.size())
