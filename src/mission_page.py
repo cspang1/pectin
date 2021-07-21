@@ -480,8 +480,8 @@ class MissionPage(QWidget):
 
     @pyqtSlot(QSize)
     def window_resized(self, size):
-        # TODO: Implement resize of columns
-        return
+        self.events.resize(size.height())
+        self.systems.resize(size.height())
 
     @pyqtSlot(int)
     def set_dark_mode(self, enable):

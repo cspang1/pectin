@@ -66,25 +66,7 @@ class ActionsWidget(QWidget):
             temp_btn.set_index(len(self.btns) - 1)
             temp_btn.pressed.connect(self.switch_active)
 
-        _, top, _, bottom = self.main_layout.getContentsMargins()
-        max_height = QApplication.primaryScreen().size().height() * .75
-        height = (
-            len(self.btns) * (
-                self.btns[0].sizeHint().height() +
-                top +
-                bottom
-            )
-        )
-        n_cols = math.ceil(height / max_height)
-        print(height, max_height, n_cols)
-
-        row = col = 0
-        for btn in self.btns:
-            self.main_layout.addWidget(btn, row, col)
-            col += 1
-            if col > n_cols - 1:
-                col = 0
-                row += 1
+        self.resize(QApplication.primaryScreen().size().height())
 
     def get_action(self, index):
         return self.btns[index].text()
@@ -106,14 +88,21 @@ class ActionsWidget(QWidget):
             self.acted.emit(self.active)
 
     def resize(self, height):
-        return
-        cur_height = self.btns[0].minimumSizeHint().height() * len(self.btns)
-        if cur_height > height * .75:
-            self.columns += 1
-            row = col = 0
-            for btn in self.btns:
-                self.main_layout.addWidget(btn, row, col)
-                col += 1
-                if col > self.columns - 1:
-                    col = 0
-                    row += 1
+        max_height = height * .75
+        _, top, _, bottom = self.main_layout.getContentsMargins()
+        height = (
+            len(self.btns) * (
+                self.btns[0].sizeHint().height() +
+                top +
+                bottom
+            )
+        )
+        n_cols = math.ceil(height / max_height)
+
+        row = col = 0
+        for btn in self.btns:
+            self.main_layout.addWidget(btn, row, col)
+            col += 1
+            if col > n_cols - 1:
+                col = 0
+                row += 1
