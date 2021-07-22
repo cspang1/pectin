@@ -183,6 +183,10 @@ class MnemonicFrame(BaseFrame):
 
         self.mnem_list_path = Path(__file__).parents[1] / "res" / "mnemonics.json"  # noqa: E501
         os.makedirs(os.path.dirname(self.mnem_list_path), exist_ok=True)
+        if not os.path.isfile(self.mnem_list_path):
+            with open(self.mnem_list_path, 'w') as mnem_file:
+                mnem_file.write('{"mnemonics": ["Modify the mnemonics.json file", "in the res directory", "to change this list"]}')  # noqa: E501
+            print('doesn\'t exist')
 
         self.cur_mnemonics = None
         self.load_mnemonics()
@@ -195,7 +199,7 @@ class MnemonicFrame(BaseFrame):
             try:
                 self.cur_mnemonics = json.load(mnem_list)
             except Exception:
-                self.new_mnem_file()(self.mnem_list_path)
+                self.new_mnem_file(self.mnem_list_path)
                 # How can we handle this kind of recursive try?
                 self.cur_mnemonics = json.load(mnem_list)
 
@@ -248,8 +252,8 @@ class MnemonicFrame(BaseFrame):
                 else:
                     named = True
             mnemonic = selected[0]
-            self.add_mnemonic()(mnemonic)
-            self.load_mnemonics()(mnemonic)
+            self.add_mnemonic(mnemonic)
+            self.load_mnemonics(mnemonic)
 
     def new_mnem_file(self, mnem_list_path):
         default = json.dumps({'mnemonics': ['XXA', 'XXB']})
