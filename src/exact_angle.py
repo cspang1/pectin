@@ -284,16 +284,18 @@ class ExactAngle(QWidget):
         self.go_btn.move(385, 55)
         self.go_btn.setFixedSize(50, 50)
         self.go_btn.setIconSize(QSize(50, 50))
-        self.go_btn.pressed.connect(self.log_angle)
+        self.go_btn.pressed.connect(lambda: self.log_angle(True))
 
         overlay = Overlay(self)
         overlay.setGeometry(self.geometry())
 
-    @pyqtSlot()
-    def log_angle(self):
-        self.angle_event.emit(self.calc_angle())
+    @pyqtSlot(bool)
+    def log_angle(self, clear):
+        if self.is_valid():
+            self.angle_event.emit(self.calc_angle())
         self.go_btn.setEnabled(False)
-        self.clear_state()
+        if clear:
+            self.clear_state()
 
     @pyqtSlot(int, BtnSource)
     def digit_pressed(self, value, source):
@@ -326,12 +328,11 @@ class ExactAngle(QWidget):
         for key in self.selected:
             self.selected[key] = False, None
 
-    @pyqtSlot()
-    def timeout_log(self):
-        if all(val[0] is True for val in self.selected.values()):
-            self.log_angle()
-        else:
-            self.clear_state()
+    def has_valid(self):
+        return any(val[0] is True for val in self.selected.values())
+
+    def is_valid(self):
+        return all(val[0] is True for val in self.selected.values())
 
     def calc_angle(self):
         return self.selected[BtnSource.HUNDREDS][1] * 100 + \

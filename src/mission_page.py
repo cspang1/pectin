@@ -60,16 +60,16 @@ class MissionPage(QWidget):
         self.timeout_timer.setSingleShot(True)
         self.timeout_timer.timeout.connect(self.update_temp_log)
         self.systems = ActionsWidget(LogSource.SYSTEM)
-        self.systems.acted.connect(self.log_event)
+        self.systems.acted.connect(self.log_item)
         self.events = ActionsWidget(LogSource.EVENT)
-        self.events.acted.connect(self.log_event)
+        self.events.acted.connect(self.log_item)
 
         self.compass = Compass()
         self.compass_widget = QWidget()
         compass_layout = QHBoxLayout()
         self.compass_widget.setLayout(compass_layout)
         compass_layout.addWidget(self.compass)
-        self.compass.angle_event.connect(self.log_event)
+        self.compass.angle_event.connect(self.log_item)
 
         self.exact_angle = ExactAngle()
         self.exact_angle_widget = QWidget()
@@ -77,7 +77,7 @@ class MissionPage(QWidget):
         self.exact_angle_widget.setLayout(exact_angle_layout)
         exact_angle_layout.addWidget(self.exact_angle)
         self.exact_angle.btn_event.connect(self.reset_timer)
-        self.exact_angle.angle_event.connect(self.log_event)
+        self.exact_angle.angle_event.connect(self.log_item)
 
         tab_widget = QTabWidget()
         tab_bar = tab_widget.tabBar()
@@ -307,68 +307,80 @@ class MissionPage(QWidget):
         pre_system.entered.connect(self.systems.switch_active)
         pre_event.entered.connect(self.events.switch_active)
         post_event.exited.connect(self.compass.clear_state)
-        post_event.exited.connect(self.exact_angle.timeout_log)
+        post_event.exited.connect(lambda: self.exact_angle.log_angle(False))
         self.log_state.setRunning(True)
+
+    def log_system(self, system):
+        self.record = self.record + 1
+        event_time = self.time.toString("HH:mm:ss")
+        self.log_area.insertRow(self.record)
+        self.log_area.setItem(
+            self.record,
+            0,
+            QTableWidgetItem(event_time)
+        )
+        self.log_area.setItem(
+            self.record,
+            1,
+            QTableWidgetItem(system)
+        )
+        self.log_area.setItem(
+            self.record,
+            2,
+            QTableWidgetItem("")
+        )
+        self.log_area.scrollToBottom()
+
+    def log_event(self, event):
+        current = self.log_area.item(self.record, 2).text()
+        if len(current) > 0:
+            current = current + "; "
+        current = current + event
+        self.log_area.setItem(
+            self.record,
+            2,
+            QTableWidgetItem(current)
+        )
+
+    def log_compass(self, range):
+        current = self.log_area.item(self.record, 2).text()
+        current = current + range
+        self.log_area.setItem(
+            self.record,
+            2,
+            QTableWidgetItem(current)
+        )
+
+    def log_angle(self, angle):
+        current = self.log_area.item(self.record, 2).text()
+        current = f"{current} at {angle}°"
+        self.log_area.setItem(
+            self.record,
+            2,
+            QTableWidgetItem(current)
+        )
 
     @pyqtSlot(Angle)
     @pyqtSlot(int)
-    def log_event(self, data):
+    def log_item(self, data):
         last_unlogged = self.timeout_timer.isActive()
         self.timeout_timer.start()
         src = self.sender()
         if type(src) is ActionsWidget:
+            if self.exact_angle.has_valid():
+                if self.exact_angle.is_valid():
+                    self.log_angle(self.exact_angle.calc_angle())
+                self.exact_angle.clear_state()
             if src.source is LogSource.SYSTEM:
+                self.log_system(src.get_action(data))
                 if last_unlogged:
                     self.update_temp_log()
-                self.record = self.record + 1
-                event_time = self.time.toString("HH:mm:ss")
-                system = src.get_action(data)
-                self.log_area.insertRow(self.record)
-                self.log_area.setItem(
-                    self.record,
-                    0,
-                    QTableWidgetItem(event_time)
-                )
-                self.log_area.setItem(
-                    self.record,
-                    1,
-                    QTableWidgetItem(system)
-                )
-                self.log_area.setItem(
-                    self.record,
-                    2,
-                    QTableWidgetItem("")
-                )
-                self.log_area.scrollToBottom()
-            if src.source is LogSource.EVENT:
-                event = src.get_action(data)
-                current = self.log_area.item(self.record, 2).text()
-                if len(current) > 0:
-                    current = current + "; "
-                current = current + event
-                self.log_area.setItem(
-                    self.record,
-                    2,
-                    QTableWidgetItem(current)
-                )
+            elif src.source is LogSource.EVENT:
+                self.log_event(src.get_action(data))
         elif type(src) is Compass:
-            angle = Angle.to_string(data)
-            current = self.log_area.item(self.record, 2).text()
-            current = current + angle
-            self.log_area.setItem(
-                self.record,
-                2,
-                QTableWidgetItem(current)
-            )
+            self.log_compass(Angle.to_string(data))
         elif type(src) is ExactAngle:
-            angle = str(data)
-            current = self.log_area.item(self.record, 2).text()
-            current = f"{current} at {angle}°"
-            self.log_area.setItem(
-                self.record,
-                2,
-                QTableWidgetItem(current)
-            )
+            self.log_angle(str(data))
 
     @pyqtSlot(int, int)
     def entry_inspected(self, row, col):
