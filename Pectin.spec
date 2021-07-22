@@ -4,8 +4,8 @@
 block_cipher = None
 
 
-a = Analysis(['main.py'],
-             pathex=['f:\\pectin\\src'],
+a = Analysis(['src\\main.py'],
+             pathex=['f:\\pectin'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -38,4 +38,4 @@ exe = EXE(pyz,
           target_arch=None,
           codesign_identity=None,
           entitlements_file=None,
-          icon='../res/icons/pectin.ico')
+          icon='res\\icons\\pectin.ico')
