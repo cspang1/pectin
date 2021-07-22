@@ -19,7 +19,12 @@ class LogButton(QPushButton):
     def __init__(self, text, source, parent=None):
         super().__init__(text, parent)
         self.source = source
-        self.setFont(QFont("Consolas", 24, 3))
+        res = QApplication.primaryScreen().size()
+        w, h = res.width(), res.height()
+        if w > 1920 or h > 1080:
+            self.setFont(QFont("Consolas", 24, 3))
+        else:
+            self.setFont(QFont("Consolas", 20, 3))
         self.index = None
         self.clicked.connect(lambda: self.pressed.emit(self.index))
 

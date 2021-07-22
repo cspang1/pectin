@@ -3,6 +3,7 @@ from PyQt5.QtGui import (
     QIcon
 )
 from PyQt5.QtWidgets import (
+    QApplication,
     QGridLayout,
     QLabel,
     QSizePolicy,
@@ -58,7 +59,12 @@ class LandingPage(QWidget):
         # Setup labels
         new_cfg_label = QLabel("Create New Config")
         new_msn_label = QLabel("Start New Mission")
-        font = QFont("Lucida Console", 64, 5, False)
+        res = QApplication.primaryScreen().size()
+        w, h = res.width(), res.height()
+        if w > 1920 or h > 1080:
+            font = QFont("Lucida Console", 64, 5, False)
+        else:
+            font = QFont("Lucida Console", 48, 5, False)
         new_cfg_label.setFont(font)
         new_msn_label.setFont(font)
         new_cfg_label.setAlignment(Qt.AlignCenter)

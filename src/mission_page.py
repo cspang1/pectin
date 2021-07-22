@@ -11,6 +11,7 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
+    QApplication,
     QFileDialog,
     QFrame,
     QGridLayout,
@@ -130,12 +131,20 @@ class MissionPage(QWidget):
         header_layout.addWidget(self.date_label)
         header_layout.addWidget(self.dl_label)
         header_layout.addWidget(self.mnemonic_label)
+        res = QApplication.primaryScreen().size()
+        w, h = res.width(), res.height()
+        if w > 1920 or h > 1080:
+            hdr_font = QFont("Consolas", 16, 2)
+            end_font = QFont("Consolas", 32, 5)
+        else:
+            hdr_font = QFont("Consolas", 14, 2)
+            end_font = QFont("Consolas", 28, 5)
         for index in range(header_layout.count()):
             widget = header_layout.itemAt(index).widget()
             widget.setSizePolicy(
                 QSizePolicy.Preferred, QSizePolicy.Maximum
             )
-            widget.setFont(QFont("Consolas", 16, 2))
+            widget.setFont(hdr_font)
             widget.setAlignment(Qt.AlignCenter)
 
         # Setup logging state machine
@@ -166,7 +175,7 @@ class MissionPage(QWidget):
         self.set_dark_mode(dark_mode)
         end_msn_btn = QPushButton("END\r\nMISSION")
         end_msn_btn.clicked.connect(self.end_mission)
-        end_msn_btn.setFont(QFont("Consolas", 32, 5))
+        end_msn_btn.setFont(end_font)
         end_msn_btn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         end_msn_btn.setStyleSheet("background-color: red; color: white")
         bottom_layout = QGridLayout()
