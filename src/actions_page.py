@@ -109,21 +109,21 @@ class ActionsPage(QWidget):
             if not new_sys[1]:
                 return
             if not str.strip(new_sys[0]):
-                QMessageBox(
-                        QMessageBox.Critical,
+                QMessageBox.critical(
+                        self,
                         "Error",
                         self.text + " name cannot be blank",
-                    ).exec()
+                    )
             elif new_sys[0] in [
                 self.action_list.item(i).text() for i in range(
                     self.action_list.count()
                 )
             ]:
-                QMessageBox(
-                    QMessageBox.Critical,
+                QMessageBox.critical(
+                    self,
                     "Error",
                     self.text + " already exists",
-                ).exec()
+                )
             else:
                 valid = True
 

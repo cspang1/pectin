@@ -94,21 +94,21 @@ class EventsPage(QWidget):
             if not new_event[1]:
                 return
             if not str.strip(new_event[0]):
-                QMessageBox(
-                        QMessageBox.Critical,
+                QMessageBox.critical(
+                        self,
                         "Error",
                         "Event cannot be blank",
-                    ).exec()
+                    )
             elif new_event[0] in [
                 self.event_list.item(i).text() for i in range(
                     self.event_list.count()
                 )
             ]:
-                QMessageBox(
-                    QMessageBox.Critical,
+                QMessageBox.critical(
+                    self,
                     "Error",
                     "Event already exists",
-                ).exec()
+                )
             else:
                 valid = True
 

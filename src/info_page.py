@@ -230,21 +230,21 @@ class MnemonicFrame(BaseFrame):
                 if not selected[1]:
                     return
                 elif not str.strip(selected[0]):
-                    QMessageBox(
-                        QMessageBox.Critical,
+                    QMessageBox.critical(
+                        self,
                         "Error",
                         "Mnemonic cannot be blank",
-                    ).exec()
+                    )
                 elif selected[0] in [
                     self.mnem_select.itemText(i) for i in range(
                         self.mnem_select.count()
                     )
                 ]:
-                    QMessageBox(
-                        QMessageBox.Critical,
+                    QMessageBox.critical(
+                        self,
                         "Error",
                         "Mnemonic already exists",
-                    ).exec()
+                    )
                 else:
                     named = True
             mnemonic = selected[0]
@@ -303,11 +303,11 @@ class CfgFrame(BaseFrame):
             try:
                 config = json.load(config_file)
             except Exception as e:
-                QMessageBox(
-                    QMessageBox.Critical,
+                QMessageBox.critical(
+                    self,
                     "Error",
                     f"Unable to load config file: {e}"
-                ).exec()
+                )
                 return
 
         # Extract data

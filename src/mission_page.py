@@ -237,11 +237,11 @@ class MissionPage(QWidget):
             with open(temp_cfg, 'w') as save_cfg_file:
                 save_cfg_file.write(json.dumps(config))
         else:
-            QMessageBox(
-                QMessageBox.Critical,
+            QMessageBox.critical(
+                self,
                 "Error",
                 f"Unable to load recovered config file: {temp_cfg}"
-            ).exec()
+            )
             return
         if recovered:
             self.recover_log(recovered)
