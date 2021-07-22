@@ -330,6 +330,8 @@ class ExactAngle(QWidget):
     def timeout_log(self):
         if all(val[0] is True for val in self.selected.values()):
             self.log_angle()
+        else:
+            self.clear_state()
 
     def calc_angle(self):
         return self.selected[BtnSource.HUNDREDS][1] * 100 + \
